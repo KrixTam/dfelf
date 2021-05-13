@@ -12,6 +12,10 @@ class PDFFileElf(DataFileElf):
     def __init__(self, cfg_filename=None):
         super().__init__(cfg_filename)
 
+    def generateConfigFile(self, cfg_filename='dfelf.cfg'):
+        # TODO
+        pass
+
     def splitPDF(self, *args):
         input_filename = ''
         output_filename = ''

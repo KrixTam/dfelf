@@ -10,5 +10,24 @@ class CVSFileElf(DataFileElf):
         super().__init__(cfg_filename)
 
     def dropDuplicates(self, df, subset):
+        # TODO
         mask = df.duplicated(subset=subset)
 
+    def readContent(self, cvs_filename=None):
+        # TODO
+        headers = None
+        with open(filename) as f:
+            headers = f.readline().split(',')
+
+
+    def add(self, *args):
+        # TODO
+        pass
+
+    def merge(self, *args):
+        # TODO
+        pass
+
+    def match(self, *args):
+        # TODO
+        pass

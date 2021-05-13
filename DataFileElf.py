@@ -4,18 +4,22 @@ import os
 import yaml
 import logging
 import hashlib
+from abc import ABCMeta, abstractmethod
 
 
-class DataFileElf(object):
+class DataFileElf(metaclass=ABCMeta):
 
     def __init__(self, cfg_filename=None):
-        super().__init__()
         self._config = None
         self._cwd = os.getcwd()
         if cfg_filename is None:
             pass
         else:
             self.getConfig(cfg_filename)
+
+    @abstractmethod
+    def generateConfigFile(self, cfg_filename='dfelf.cfg'):
+        pass
 
     def getConfig(self, filename):
         obj_json = None

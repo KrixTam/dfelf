@@ -17,12 +17,22 @@ class DataFileElf(metaclass=ABCMeta):
         else:
             self.getConfig(cfg_filename)
 
+    def __getitem__(self, item):
+        if item in self._config:
+            return self._config[item]
+        else:
+            return None
+
+    def get_filename(self, filename):
+        return os.path.join(self._cwd, filename)
+
     @abstractmethod
-    def generateConfigFile(self, cfg_filename='dfelf.cfg'):
+    def generate_config_file(self, cfg_filename='dfelf.cfg', *args):
         pass
 
-    def getConfig(self, filename):
+    def get_config(self, config_filename):
         obj_json = None
+        filename = self.get_filename(config_filename)
         if (filename is not None) and (os.path.exists(filename)):
             with open(filename, 'r') as f:
                 obj_json = yaml.safe_load(f)
@@ -35,7 +45,7 @@ class DataFileElf(metaclass=ABCMeta):
         # https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
         # Note: hash_md5.hexdigest() will return the hex string representation for the digest, if you just need the packed bytes use return hash_md5.digest(), so you don't have to convert back.
         hash_md5 = hashlib.md5()
-        input_filename = os.path.join(self._cwd, filename)
+        input_filename = self.get_filename(filename)
         with open(input_filename, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)

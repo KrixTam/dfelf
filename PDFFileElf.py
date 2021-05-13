@@ -5,6 +5,7 @@ from DataFileElf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
 import os
+import json
 
 
 class PDFFileElf(DataFileElf):
@@ -12,11 +13,22 @@ class PDFFileElf(DataFileElf):
     def __init__(self, cfg_filename=None):
         super().__init__(cfg_filename)
 
-    def generateConfigFile(self, cfg_filename='dfelf.cfg'):
-        # TODO
-        pass
+    def generate_config_file(self, cfg_filename='dfelf.cfg', *args):
+        config = {
+            'input': 'input_filename',
+            'output': 'output_filename',
+            'concat': []
+        }
+        if len(args) == 3:
+            config['input'] = args[0]
+            config['output'] = args[1]
+            config['concat'] = args[2]
+        filename = self.get_filename(cfg_filename)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(config, f)
+        self._config = config
 
-    def splitPDF(self, *args):
+    def reorganize_pdf(self, *args):
         input_filename = ''
         output_filename = ''
         pages = []
@@ -43,7 +55,7 @@ class PDFFileElf(DataFileElf):
                 output_filename = self._config['output']
         if len(pages) > 0:
             output = PdfFileWriter()
-            input_stream = open(os.path.join(self._cwd, input_filename), "rb")
+            input_stream = open(self.get_filename(input_filename), "rb")
             pdf_file = PdfFileReader(input_stream)
             pdf_pages_len = pdf_file.getNumPages()
             ori_pages = range(1, pdf_pages_len + 1)
@@ -52,7 +64,7 @@ class PDFFileElf(DataFileElf):
                     output.addPage(pdf_file.getPage(page - 1))
                 else:
                     logging.warning('Page ' + str(page) + ' is not found in PDF file "' + input_filename + '".')
-            output_stream = open(os.path.join(self._cwd, output_filename), "wb")
+            output_stream = open(self.get_filename(output_filename), "wb")
             output.write(output_stream)
             output_stream.close()
             input_stream.close()

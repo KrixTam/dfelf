@@ -28,7 +28,7 @@ class PDFFileElf(DataFileElf):
             json.dump(config, f)
         self._config = config
 
-    def reorganize_pdf(self, *args):
+    def reorganize(self, *args):
         input_filename = ''
         output_filename = ''
         pages = []

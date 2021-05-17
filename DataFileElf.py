@@ -12,6 +12,7 @@ class DataFileElf(metaclass=ABCMeta):
     def __init__(self, cfg_filename=None):
         self._config = None
         self._cwd = os.getcwd()
+        self._log_path = self.get_filename('log')
         if cfg_filename is None:
             pass
         else:
@@ -22,6 +23,10 @@ class DataFileElf(metaclass=ABCMeta):
             return self._config[item]
         else:
             return None
+
+    def make_log_dir(self):
+        if not os.path.exists(self._log_path):
+            os.makedirs(self._log_path)
 
     def get_filename(self, filename):
         return os.path.join(self._cwd, filename)

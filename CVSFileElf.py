@@ -32,19 +32,42 @@ class CVSFileElf(DataFileElf):
         content = pd.read_csv(filename, dtype=data_type)
         return content
 
-    def generate_config_file(self, cfg_filename='dfelf.cfg', *args):
-        # TODO
-        pass
+    def set_default_config(self):
+        self._config = {
+            'add': {
+                'base': {
+                    'name': 'base_filename',
+                    'key': 'key_field'
+                },
+                'output': 'output_filename',
+                'tags': [
+                    {
+                        'name': 'base_filename',
+                        'key': 'key_field',
+                        'fields': [
+                            {'field A': 'default value of field A'},
+                            {'field B': 'default value of field B'}
+                        ]
+                    }
+                ]
+            },
+            'merge': {},
+            'match': {},
+            'filter': {}
+        }
 
     def add(self, *args):
         # TODO
-        ori_filename = ''
+        base = {
+            'name': 'base_filename',
+            'key': 'key_field'
+        }
         output_filename = ''
-        pages = []
+        tags = []
         if 3 == len(args):
-            input_filename = args[0]
+            base = args[0]
             output_filename = args[1]
-            pages = args[2]
+            tags = args[2]
 
     def merge(self, *args):
         # TODO

@@ -4,8 +4,6 @@
 from DataFileElf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
-import os
-import json
 
 
 class PDFFileElf(DataFileElf):
@@ -13,20 +11,12 @@ class PDFFileElf(DataFileElf):
     def __init__(self, cfg_filename=None):
         super().__init__(cfg_filename)
 
-    def generate_config_file(self, cfg_filename='dfelf.cfg', *args):
-        config = {
+    def set_default_config(self):
+        self._config = {
             'input': 'input_filename',
             'output': 'output_filename',
             'concat': []
         }
-        if len(args) == 3:
-            config['input'] = args[0]
-            config['output'] = args[1]
-            config['concat'] = args[2]
-        filename = self.get_filename(cfg_filename)
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(config, f)
-        self._config = config
 
     def reorganize(self, *args):
         input_filename = ''
@@ -70,3 +60,7 @@ class PDFFileElf(DataFileElf):
             input_stream.close()
         else:
             logging.warning('Pages for split are not set.')
+
+    def to_image(self, *args):
+        # TODO
+        pass

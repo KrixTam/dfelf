@@ -4,6 +4,7 @@ import os
 import yaml
 import logging
 import hashlib
+import json
 from abc import ABCMeta, abstractmethod
 
 
@@ -14,7 +15,7 @@ class DataFileElf(metaclass=ABCMeta):
         self._cwd = os.getcwd()
         self._log_path = self.get_filename('log')
         if cfg_filename is None:
-            pass
+            self.set_default_config()
         else:
             self.getConfig(cfg_filename)
 
@@ -32,8 +33,17 @@ class DataFileElf(metaclass=ABCMeta):
         return os.path.join(self._cwd, filename)
 
     @abstractmethod
-    def generate_config_file(self, cfg_filename='dfelf.cfg', *args):
+    def set_default_config(self):
         pass
+
+    def generate_config_file(self, cfg_filename='dfelf.cfg', **kwargs):
+        self.set_default_config()
+        for key, value in kwargs.items():
+            if key in self._config:
+                self._config[key] = value
+        filename = self.get_filename(cfg_filename)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(self._config, f, indent=4)
 
     def get_config(self, config_filename):
         obj_json = None

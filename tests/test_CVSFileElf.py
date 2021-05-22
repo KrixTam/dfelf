@@ -3,14 +3,14 @@
 import unittest
 import os
 from CVSFileElf import CVSFileElf
-import pandas as pd
+# import pandas as pd
 
 
 class TestCVSFileElf(unittest.TestCase):
 
     def test_drop_duplicates(self):
         input_filename = os.path.join('sources', 'ori_data.csv')
-        log_result = os.path.join('result', 'drop_duplicates.20210514.164402.log')
+        log_result = os.path.join('result', 'drop_duplicates.ori.log')
         df_elf = CVSFileElf()
         df = df_elf.read_content(input_filename)
         log_filename = df_elf.drop_duplicates(df, 'brand')[1]

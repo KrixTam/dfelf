@@ -1,66 +1,45 @@
 # coding: utf-8
 
 import os
-import yaml
-import logging
 import hashlib
-import json
 from abc import ABCMeta, abstractmethod
 
 
 class DataFileElf(metaclass=ABCMeta):
 
-    def __init__(self, cfg_filename=None):
+    def __init__(self):
         self._config = None
+        self.set_config()
         self._cwd = os.getcwd()
-        self._log_path = self.get_filename('log')
-        if cfg_filename is None:
-            self.set_default_config()
-        else:
-            self.getConfig(cfg_filename)
-
-    def __getitem__(self, item):
-        if item in self._config:
-            return self._config[item]
-        else:
-            return None
+        self._log_path = self.get_filename_with_path('log')
+        self.make_log_dir()
 
     def make_log_dir(self):
         if not os.path.exists(self._log_path):
             os.makedirs(self._log_path)
 
-    def get_filename(self, filename):
+    def get_filename_with_path(self, filename):
         return os.path.join(self._cwd, filename)
 
     @abstractmethod
-    def set_default_config(self):
+    def set_config(self):
         pass
 
-    def generate_config_file(self, cfg_filename='dfelf.cfg', **kwargs):
-        self.set_default_config()
+    def generate_config_file(self, config_filename=None, **kwargs):
         for key, value in kwargs.items():
             if key in self._config:
                 self._config[key] = value
-        filename = self.get_filename(cfg_filename)
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(self._config, f, indent=4)
+        self._config.dump(config_filename)
 
-    def get_config(self, config_filename):
-        obj_json = None
-        filename = self.get_filename(config_filename)
-        if (filename is not None) and (os.path.exists(filename)):
-            with open(filename, 'r') as f:
-                obj_json = yaml.safe_load(f)
-                logging.info('Succeeded reading file "' + filename + '".')
-        else:
-            logging.warning(str(filename) + ' is not found.')
-        self._config = obj_json
+    def load_config(self, config_filename):
+        self._config.load_config(config_filename)
+
+    def get_config(self):
+        return self._config
 
     def checksum(self, filename):
-        # https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
-        # Note: hash_md5.hexdigest() will return the hex string representation for the digest, if you just need the packed bytes use return hash_md5.digest(), so you don't have to convert back.
         hash_md5 = hashlib.md5()
-        input_filename = self.get_filename(filename)
+        input_filename = self.get_filename_with_path(filename)
         with open(input_filename, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)

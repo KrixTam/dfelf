@@ -4,12 +4,87 @@ import pandas as pd
 from DataFileElf import DataFileElf
 import os
 from moment import moment
+from config import config
 
 
 class CVSFileElf(DataFileElf):
 
-    def __init__(self, cfg_filename=None):
-        super().__init__(cfg_filename)
+    def __init__(self):
+        super().__init__()
+
+    def set_config(self):
+        self._config = config({
+            'name': 'CVSFileElf',
+            'default': {
+                'add': {
+                    'base': {
+                        'name': 'base_filename',
+                        'key': 'key_field'
+                    },
+                    'output': 'output_filename',
+                    'tags': [
+                        {
+                            'name': 'base_filename',
+                            'key': 'key_field',
+                            'fields': [
+                                {'field A': 'default value of field A'},
+                                {'field B': 'default value of field B'}
+                            ]
+                        }
+                    ]
+                },
+                'merge': {},
+                'match': {},
+                'filter': {}
+            },
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'add': {
+                        "type": "object",
+                        "properties": {
+                            'base': {
+                                "type": "object",
+                                "properties": {
+                                    'name': { "type": "string" },
+                                    'key': { "type": "string" }
+                                }
+                            },
+                            'output': { "type": "string" },
+                            'tags': {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        'name': { "type": "string" },
+                                        'key': { "type": "string" },
+                                        'fields': {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                        'field': { "type": "string" },
+                                                        'default': { "type": "string" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    'merge': {
+                        'type': 'object'
+                    },
+                    'match': {
+                        'type': 'object'
+                    },
+                    'filter': {
+                        'type': 'object'
+                    }
+                }
+            }
+        })
 
     def drop_duplicates(self, df, subset):
         mask = pd.Series(df.duplicated(subset=subset))
@@ -23,7 +98,7 @@ class CVSFileElf(DataFileElf):
 
     def read_content(self, cvs_filename=None):
         headers = []
-        filename = self.get_filename(cvs_filename)
+        filename = self.get_filename_with_path(cvs_filename)
         with open(filename) as f:
             headers = f.readline().split(',')
         data_type = {}
@@ -31,30 +106,6 @@ class CVSFileElf(DataFileElf):
             data_type[header] = str
         content = pd.read_csv(filename, dtype=data_type)
         return content
-
-    def set_default_config(self):
-        self._config = {
-            'add': {
-                'base': {
-                    'name': 'base_filename',
-                    'key': 'key_field'
-                },
-                'output': 'output_filename',
-                'tags': [
-                    {
-                        'name': 'base_filename',
-                        'key': 'key_field',
-                        'fields': [
-                            {'field A': 'default value of field A'},
-                            {'field B': 'default value of field B'}
-                        ]
-                    }
-                ]
-            },
-            'merge': {},
-            'match': {},
-            'filter': {}
-        }
 
     def add(self, *args):
         # TODO

@@ -25,11 +25,12 @@ class TestPDFFileElf(unittest.TestCase):
         output_filename_01 = os.path.join('result', 'PDFFileElf_default.cfg')
         output_filename_02 = os.path.join('result', 'PDFFileElf.cfg')
         df_elf.generate_config_file(output_filename_01)
-        df_elf.generate_config_file(output_filename_02, 'abc.pdf', 'cde.pdf', [1, 3, 2])
+        df_elf.generate_config_file(output_filename_02, input='abc.pdf', output='cde.pdf', concat=[1, 3, 2])
         self.assertEqual(df_elf.checksum(output_filename_01), df_elf.checksum(default_cfg_file))
-        self.assertEqual(df_elf['input'], 'abc.pdf')
-        self.assertEqual(df_elf['output'], 'cde.pdf')
-        self.assertEqual(df_elf['concat'], [1, 3, 2])
+        c = df_elf.get_config()
+        self.assertEqual(c['input'], 'abc.pdf')
+        self.assertEqual(c['output'], 'cde.pdf')
+        self.assertEqual(c['concat'], [1, 3, 2])
 
 
 if __name__ == '__main__':

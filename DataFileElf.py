@@ -9,26 +9,38 @@ class DataFileElf(metaclass=ABCMeta):
 
     def __init__(self):
         self._config = None
-        self.set_config()
+        self.init_config()
         self._cwd = os.getcwd()
         self._log_path = self.get_filename_with_path('log')
-        self.make_log_dir()
+        self._out_path = self.get_filename_with_path('output')
+        self.init_dir()
 
-    def make_log_dir(self):
+    def init_dir(self):
         if not os.path.exists(self._log_path):
             os.makedirs(self._log_path)
+        if not os.path.exists(self._out_path):
+            os.makedirs(self._out_path)
 
     def get_filename_with_path(self, filename):
         return os.path.join(self._cwd, filename)
 
+    def get_output_path(self, filename):
+        return os.path.join(self._out_path, filename)
+
+    def get_log_path(self, filename):
+        return os.path.join(self._log_path, filename)
+
     @abstractmethod
-    def set_config(self):
+    def init_config(self):
         pass
 
-    def generate_config_file(self, config_filename=None, **kwargs):
+    def set_config(self, **kwargs):
         for key, value in kwargs.items():
             if key in self._config:
                 self._config[key] = value
+
+    def generate_config_file(self, config_filename=None, **kwargs):
+        self.set_config(**kwargs)
         self._config.dump(config_filename)
 
     def load_config(self, config_filename):

@@ -10,3 +10,47 @@
 * 图片
 
 所以数据文件精灵初步设计可以支持以上三类文件的日常处理需要。
+
+## PDFFileElf
+
+PDF文件精灵用于日常对PDF的处理应用。
+
+配置文件设定如下：
+
+> {
+> 
+>     'name': 'PDFFileElf',
+> 
+>     'default': {
+> 
+>         'input': 'input_filename',
+> 
+>         'output': 'output_filename',
+> 
+>         'concat': []
+> 
+>     },
+> 
+>     'schema': {
+> 
+>         'type': 'object',
+> 
+>         'properties': {
+> 
+>             'input': {'type': 'string'},
+> 
+>             'output': {'type': 'string'},
+> 
+>             'concat': {
+> 
+>                 'type': 'array',
+> 
+>                 'items': {'type': 'number'}
+>             }
+> 
+>         }
+> 
+>     }
+> 
+> }
+

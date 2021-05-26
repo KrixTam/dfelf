@@ -5,6 +5,7 @@ from DataFileElf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
 from config import config
+from PIL import Image
 
 
 class PDFFileElf(DataFileElf):
@@ -18,7 +19,8 @@ class PDFFileElf(DataFileElf):
             'default': {
                 'input': 'input_filename',
                 'output': 'output_filename',
-                'concat': []
+                'concat': [],
+                'from_images': []
             },
             'schema': {
                 'type': 'object',
@@ -28,6 +30,10 @@ class PDFFileElf(DataFileElf):
                     'concat': {
                         'type': 'array',
                         'items': {'type': 'number'}
+                    },
+                    'from_images': {
+                        'type': 'array',
+                        'items': {'type': 'string'}
                     }
                 }
             }
@@ -57,7 +63,22 @@ class PDFFileElf(DataFileElf):
             output_stream.close()
             input_stream.close()
         else:
-            logging.warning('Pages for split are not set.')
+            logging.warning('"concat"没有设置，请设置后重试。')
+
+    def from_image(self, **kwargs):
+        self.set_config(**kwargs)
+        image_filenames = self._config['from_images']
+        output_filename = self._config['output']
+        num_filenames = len(image_filenames)
+        if num_filenames > 0:
+            image_0 = Image.open(self.get_filename_with_path(image_filenames[0])).convert('RGB')
+            image_list = []
+            for i in range(1, num_filenames):
+                image = Image.open(self.get_filename_with_path(image_filenames[i])).convert('RGB')
+                image_list.append(image)
+            image_0.save(self.get_output_path(output_filename), save_all=True, append_images=image_list)
+        else:
+            logging.warning('"from_images"没有设置，请设置后重试。')
 
     def to_image(self, *args):
         # TODO

@@ -27,7 +27,9 @@ PDF文件精灵用于日常对PDF的处理应用。
 > 
 >         'output': 'output_filename',
 > 
->         'concat': []
+>         'concat': [],
+> 
+>         'from_images': []
 > 
 >     },
 > 
@@ -46,6 +48,14 @@ PDF文件精灵用于日常对PDF的处理应用。
 >                 'type': 'array',
 > 
 >                 'items': {'type': 'number'}
+>             },
+> 
+>             'from_images': {
+> 
+>                 'type': 'array',
+> 
+>                 'items': {'type': 'string'}
+> 
 >             }
 > 
 >         }

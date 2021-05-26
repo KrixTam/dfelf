@@ -32,6 +32,12 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(c['output'], 'cde.pdf')
         self.assertEqual(c['concat'], [1, 3, 2])
 
+    def test_from_image(self):
+        df_elf = PDFFileElf()
+        filenames = [os.path.join('sources', '01.png'), os.path.join('sources', '02.png')]
+        df_elf.from_image(output='mr.pdf', from_images=filenames)
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')), df_elf.checksum(os.path.join('result', 'mr.pdf')))
+
 
 if __name__ == '__main__':
     unittest.main()

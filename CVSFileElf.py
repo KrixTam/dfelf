@@ -30,7 +30,9 @@ class CVSFileElf(DataFileElf):
                         }
                     ]
                 },
-                'merge': {},
+                'merge': {
+
+                },
                 'match': {},
                 'filter': {}
             },

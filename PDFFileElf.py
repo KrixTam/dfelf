@@ -53,7 +53,7 @@ class PDFFileElf(DataFileElf):
                 if page in ori_pages:
                     output.addPage(pdf_file.getPage(page - 1))
                 else:
-                    logging.warning('Page ' + str(page) + ' is not found in PDF file "' + input_filename + '".')
+                    logging.warning('PDF文件"' + input_filename + '"中不存在第' + str(page) + '的内容，请检查PDF原文档的内容正确性或者配置正确性。')
             ot_filename = self.get_filename_with_path(output_filename)
             if default_output:
                 ot_filename = self.get_output_path(output_filename)

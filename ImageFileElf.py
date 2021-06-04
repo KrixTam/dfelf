@@ -64,26 +64,26 @@ class ImageFileElf(DataFileElf):
     def splice(self, **kwargs):
         self.set_config(**kwargs)
         if self._config.is_default('splice'):
+            logging.warning('"splice"没有设置正确，请设置后重试。')
+        else:
             num_img = len(self._config['splice']['images'])
             output_filename = self._config['output']
             if num_img > 0:
                 width = self._config['splice']['width']
                 gap = self._config['splice']['gap']
                 width_img = 2 * gap + width
-                height_img = 2 * gap
+                height_img = gap
                 images = []
                 locations = []
                 y = gap
+                locations.append(y)
                 for i in range(num_img):
                     filename = self._config['splice']['images'][i]
                     img = Image.open(self.get_filename_with_path(filename))
-                    resize_height = img.size[1] * width / img.size[0]
-                    height_img = height_img + resize_height
+                    resize_height = int(img.size[1] * width / img.size[0])
+                    height_img = height_img + resize_height + gap
                     images.append(img.resize((width, resize_height), Image.ANTIALIAS))
-                    if i == 0:
-                        pass
-                    else:
-                        y = y + resize_height
+                    y = y + resize_height + gap
                     locations.append(y)
                 ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
                 for i in range(num_img):
@@ -93,8 +93,6 @@ class ImageFileElf(DataFileElf):
                 ret_img.save(self.get_output_path(output_filename))
             else:
                 logging.warning('"splice"中没有正确设置"images"参数，请设置后重试。')
-        else:
-            logging.warning('"splice"没有设置正确，请设置后重试。')
 
     def watermark(self, **kwargs):
         self.set_config(**kwargs)

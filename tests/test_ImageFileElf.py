@@ -22,6 +22,21 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
                          df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
 
+    def test_splice(self):
+        input_filename = os.path.join('sources', 'icon.png')
+        print(input_filename)
+        df_elf = ImageFileElf()
+        splice_config = {
+            'images': [input_filename, input_filename],
+            'width': 125,
+            'gap': 5
+        }
+        filename = 'icon_splice.png'
+        df_elf.splice(output=filename, splice=splice_config)
+        result_filename = os.path.join('result', filename)
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
+                         df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
+
 
 if __name__ == '__main__':
     unittest.main()

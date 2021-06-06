@@ -9,10 +9,7 @@ class TestImageFileElf(unittest.TestCase):
 
     def test_to_favicon(self):
         input_filename = os.path.join('sources', 'icon.png')
-        favicon_settings = {
-            'input': input_filename,
-            'size': -1
-        }
+        favicon_settings = {'input': input_filename}
         df_elf = ImageFileElf()
         df_elf.to_favicon(favicon=favicon_settings)
         icon_sizes = [16, 24, 32, 48, 64, 128, 255]
@@ -37,8 +34,7 @@ class TestImageFileElf(unittest.TestCase):
         splice_config = {
             'output': filename,
             'images': [input_filename, input_filename],
-            'width': 125,
-            'gap': 5
+            'width': 125
         }
         df_elf.splice(splice=splice_config)
         result_filename = os.path.join('result', filename)

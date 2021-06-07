@@ -1,9 +1,18 @@
 # coding: utf-8
 
 from DataFileElf import DataFileElf
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import logging
 from config import config
+import re
+
+
+def isValidColor(color_str):
+    p = re.compile('[A-Fa-f0-9]{6}')
+    if re.search(p, color_str):
+        return True
+    else:
+        return False
 
 
 class ImageFileElf(DataFileElf):
@@ -29,11 +38,12 @@ class ImageFileElf(DataFileElf):
                     'input': 'input_filename',
                     'output': 'output_filename',
                     'text': 'Krix.Tam',
-                    'color': '000',
+                    'color': 'FFFFFF',
                     'font': 'arial.ttf',
                     'font_size': 24,
                     'x': 5,
-                    'y': 5
+                    'y': 5,
+                    'alpha': 50
                 }
             },
             'schema': {
@@ -68,7 +78,8 @@ class ImageFileElf(DataFileElf):
                             'font': {'type': 'string'},
                             'font_size': {'type': 'number'},
                             'x': {'type': 'number'},
-                            'y': {'type': 'number'}
+                            'y': {'type': 'number'},
+                            'alpha': {'type': 'number'}
                         }
                     }
                 }
@@ -129,4 +140,26 @@ class ImageFileElf(DataFileElf):
 
     def watermark(self, **kwargs):
         self.set_config(**kwargs)
-
+        if self._config.is_default('watermark'):
+            logging.warning('"watermark"没有设置正确，请设置后重试。')
+        else:
+            input_filename = self._config['watermark']['input']
+            img = Image.open(self.get_filename_with_path(input_filename))
+            output_filename = self._config['watermark']['output']
+            font_draw = ImageFont.truetype(self._config['watermark']['font'], self._config['watermark']['font_size'])
+            text = self._config['watermark']['text']
+            color = self._config['watermark']['color']
+            x = self._config['watermark']['x']
+            y = self._config['watermark']['y']
+            if self._config['watermark']['alpha'] > 100 or self._config['watermark']['alpha'] < 0:
+                raise ValueError('"watermark"中的"alpha"取值范围为[0, 100]。')
+            if not isValidColor(color):
+                raise ValueError('"watermark"中的"color"不是六位的十六进制色值。')
+            alpha = int(self._config['watermark']['alpha'] / 100 * 255)
+            color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
+            loc = (x, y)
+            txt_img = Image.new('RGBA', img.size, (0, 0, 0, 0))
+            draw = ImageDraw.Draw(txt_img)
+            draw.text(loc, text, fill=color, font=font_draw)
+            img.paste(txt_img, (0, 0), txt_img)
+            img.save(self.get_output_path(output_filename))

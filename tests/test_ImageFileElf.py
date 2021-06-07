@@ -41,6 +41,25 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
                          df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
 
+    def test_watermark(self):
+        df_elf = ImageFileElf()
+        ttf = os.path.join('sources', 'arial.ttf')
+        input_filename = os.path.join('sources', 'icon.png')
+        filename = 'icon_watermark.png'
+        watermark = {
+            'input': input_filename,
+            'output': filename,
+            'text': 'Krix.Tam',
+            'color': 'FFFFFF',
+            'font': ttf,
+            'font_size': 14,
+            'alpha': 20
+        }
+        df_elf.watermark(watermark=watermark)
+        result_filename = os.path.join('result', filename)
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
+                         df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
+
 
 if __name__ == '__main__':
     unittest.main()

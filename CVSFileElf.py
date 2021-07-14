@@ -34,7 +34,12 @@ class CVSFileElf(DataFileElf):
 
                 },
                 'match': {},
-                'filter': {}
+                'filter': {},
+                'split': {
+                    'input': 'input_filename',
+                    'output': 'output_filename_prefix',
+                    'key': 'key_field'
+                }
             },
             'schema': {
                 'type': 'object',
@@ -78,6 +83,14 @@ class CVSFileElf(DataFileElf):
                     },
                     'filter': {
                         'type': 'object'
+                    },
+                    'split': {
+                        'type': 'object',
+                        "properties": {
+                            'input': {"type": "string"},
+                            'output': {"type": "string"},
+                            'key': {"type": "string"}
+                        }
                     }
                 }
             }
@@ -138,3 +151,23 @@ class CVSFileElf(DataFileElf):
             'filter': kwargs
         }
         self.set_config(**new_kwargs)
+
+    def split(self, **kwargs):
+        new_kwargs = {
+            'split': kwargs
+        }
+        self.set_config(**new_kwargs)
+        input_filename = self._config['split']['input']
+        df_ori = self.read_content(input_filename)
+        key_name = self._config['split']['key']
+        columns = df_ori.columns
+        output_prefix = self._config['split']['output'] + '_'
+        if key_name in columns:
+            split_keys = df_ori[key_name].unique()
+            for key in split_keys:
+                tmp_df = df_ori.loc[df_ori[key_name] == key]
+                output_filename = self.get_output_path(output_prefix + key + '.csv')
+                tmp_df.to_csv(output_filename, index=False)
+        else:
+            raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')
+

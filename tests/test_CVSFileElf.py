@@ -41,6 +41,21 @@ class TestCVSFileElf(unittest.TestCase):
         dist_filename = df_elf.get_output_path(config['output'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_split(self):
+        df_elf = CVSFileElf()
+        config = {
+            'input': os.path.join('sources', 'products_p3.csv'),
+            'output': 'split',
+            'key': 'B'
+        }
+        df_elf.split(**config)
+        filenames = ['B1', 'B2', 'B3', 'B4']
+        for filename in filenames:
+            real_filename = config['output'] + '_' + filename + '.csv'
+            result_filename = os.path.join('result', real_filename)
+            dist_filename = df_elf.get_output_path(real_filename)
+            self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
 
 if __name__ == '__main__':
     unittest.main()

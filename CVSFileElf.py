@@ -37,7 +37,11 @@ class CVSFileElf(DataFileElf):
                 'filter': {},
                 'split': {
                     'input': 'input_filename',
-                    'output': 'output_filename_prefix',
+                    'output': {
+                        'prefix': 'output_filename_prefix',
+                        'BOM': False,
+                        'non-numeric': []
+                    },
                     'key': 'key_field'
                 }
             },
@@ -88,7 +92,17 @@ class CVSFileElf(DataFileElf):
                         'type': 'object',
                         "properties": {
                             'input': {"type": "string"},
-                            'output': {"type": "string"},
+                            'output': {
+                                "type": "object",
+                                "properties": {
+                                    'prefix': {"type": "string"},
+                                    'BOM': {"type": "boolean"},
+                                    'non-numeric': {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                }
+                            },
                             'key': {"type": "string"}
                         }
                     }
@@ -102,8 +116,27 @@ class CVSFileElf(DataFileElf):
         filename = self.get_log_path(log_filename)
         duplicates = df[mask]
         duplicates.to_csv(filename)
+        # CVSFileElf.to_csv_without_bom(duplicates, filename)
         else_mask = ~ mask
         return df[else_mask], log_filename
+
+    @staticmethod
+    def to_csv_without_bom(df, output_filename, nn=[]):
+        df_export = df.copy()
+        for field in nn:
+            if field in df_export.columns:
+                df_export[field] = df_export[field].apply(lambda x: '="' + x + '"')
+        df_export.to_csv(output_filename, index=False)
+
+    @staticmethod
+    def tidy(df, nn):
+        df_export = CVSFileElf.tidy(df, nn)
+        return df_export
+
+    @staticmethod
+    def to_csv_with_bom(df, output_filename, nn=[]):
+        df_export = CVSFileElf.tidy(df, nn)
+        df_export.to_csv(output_filename, index=False, encoding='utf-8-sig')
 
     def read_content(self, cvs_filename=None):
         filename = self.get_filename_with_path(cvs_filename)
@@ -132,7 +165,8 @@ class CVSFileElf(DataFileElf):
             for x in range(len(fields)):
                 df_ori[fields[x]].fillna(defaults[x], inplace=True)
         output_filename = self.get_output_path(self._config['add']['output'])
-        df_ori.to_csv(output_filename, index=False)
+        # df_ori.to_csv(output_filename, index=False)
+        CVSFileElf.to_csv_without_bom(df_ori, output_filename)
 
     def merge(self, **kwargs):
         new_kwargs = {
@@ -161,13 +195,22 @@ class CVSFileElf(DataFileElf):
         df_ori = self.read_content(input_filename)
         key_name = self._config['split']['key']
         columns = df_ori.columns
-        output_prefix = self._config['split']['output'] + '_'
+        output_prefix = self._config['split']['output']['prefix'] + '_'
+        non_numeric = self._config['split']['output']['non-numeric']
         if key_name in columns:
             split_keys = df_ori[key_name].unique()
-            for key in split_keys:
-                tmp_df = df_ori.loc[df_ori[key_name] == key]
-                output_filename = self.get_output_path(output_prefix + key + '.csv')
-                tmp_df.to_csv(output_filename, index=False)
+            if self._config['split']['output']['BOM']:
+                for key in split_keys:
+                    tmp_df = df_ori.loc[df_ori[key_name] == key]
+                    output_filename = self.get_output_path(output_prefix + key + '.csv')
+                    # tmp_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
+                    CVSFileElf.to_csv_with_bom(tmp_df, output_filename, non_numeric)
+            else:
+                for key in split_keys:
+                    tmp_df = df_ori.loc[df_ori[key_name] == key]
+                    output_filename = self.get_output_path(output_prefix + key + '.csv')
+                    # tmp_df.to_csv(output_filename, index=False)
+                    CVSFileElf.to_csv_without_bom(tmp_df, output_filename, non_numeric)
         else:
             raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')
 

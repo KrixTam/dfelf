@@ -121,17 +121,17 @@ class CVSFileElf(DataFileElf):
         return df[else_mask], log_filename
 
     @staticmethod
-    def to_csv_without_bom(df, output_filename, nn=[]):
+    def tidy(df, nn):
         df_export = df.copy()
         for field in nn:
             if field in df_export.columns:
                 df_export[field] = df_export[field].apply(lambda x: '="' + x + '"')
-        df_export.to_csv(output_filename, index=False)
+        return df_export
 
     @staticmethod
-    def tidy(df, nn):
+    def to_csv_without_bom(df, output_filename, nn=[]):
         df_export = CVSFileElf.tidy(df, nn)
-        return df_export
+        df_export.to_csv(output_filename, index=False)
 
     @staticmethod
     def to_csv_with_bom(df, output_filename, nn=[]):
@@ -195,7 +195,9 @@ class CVSFileElf(DataFileElf):
         df_ori = self.read_content(input_filename)
         key_name = self._config['split']['key']
         columns = df_ori.columns
-        output_prefix = self._config['split']['output']['prefix'] + '_'
+        output_prefix = ''
+        if '' != self._config['split']['output']['prefix']:
+            output_prefix = self._config['split']['output']['prefix'] + '_'
         non_numeric = self._config['split']['output']['non-numeric']
         if key_name in columns:
             split_keys = df_ori[key_name].unique()

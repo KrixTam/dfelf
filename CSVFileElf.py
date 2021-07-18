@@ -53,7 +53,21 @@ class CSVFileElf(DataFileElf):
                         'non-numeric': []
                     }
                 },
-                'filter': {},
+                'filter': {
+                    'input': 'input_filename',
+                    'filters': [
+                        {
+                            'key': 'field',
+                            'op': '=',
+                            'value': 123
+                        }
+                    ],
+                    'output': {
+                        'name': 'output_filename',
+                        'BOM': False,
+                        'non-numeric': []
+                    }
+                },
                 'split': {
                     'input': 'input_filename',
                     'output': {
@@ -144,7 +158,35 @@ class CSVFileElf(DataFileElf):
                         }
                     },
                     'filter': {
-                        'type': 'object'
+                        'type': 'object',
+                        "properties": {
+                            'input': {"type": "string"},
+                            'filters': {
+                                "type": "array",
+                                "items": {
+                                    'type': 'object',
+                                    "properties": {
+                                        'key': {"type": "string"},
+                                        'op': {
+                                            "type": "string",
+                                            "enum": ['=', '!=', '>', '>=', '<=', '<']
+                                        },
+                                        'value': {"type": ["number", "string"]}
+                                    }
+                                }
+                            },
+                            'output': {
+                                "type": "object",
+                                "properties": {
+                                    'name': {"type": "string"},
+                                    'BOM': {"type": "boolean"},
+                                    'non-numeric': {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
                     },
                     'split': {
                         'type': 'object',
@@ -306,6 +348,54 @@ class CSVFileElf(DataFileElf):
             'filter': kwargs
         }
         self.set_config(**new_kwargs)
+        input_filename = self._config['filter']['input']
+        df_ori = self.read_content(input_filename)
+        filters = self._config['filter']['filters']
+        for f in filters:
+            key = f['key']
+            op = f['op']
+            value = f['value']
+            if isinstance(value, str):
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key] == value]
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key] != value]
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key] > value]
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key] >= value]
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key] < value]
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key] <= value]
+                    continue
+            else:
+                key_tmp = key + '_tmp'
+                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                    continue
+        self.to_output_file(df_ori, 'filter')
 
     def split(self, **kwargs):
         new_kwargs = {

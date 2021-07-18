@@ -340,6 +340,246 @@ class TestCSVFileElf(unittest.TestCase):
             dist_filename = df_elf.get_output_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_filter_n01(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_=.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '!=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_!=.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_!=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '>',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_gt.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_gt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n04(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '>=',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_gte.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_gte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n05(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '<',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_lt.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_lt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n06(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '<=',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_lte.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_n_lte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s01(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_=.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '!=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_!=.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_!=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '>',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_gt.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_gt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s04(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '>=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_gte.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_gte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s05(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '<',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_lt.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_lt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_s06(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'key',
+                    'op': '<=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_filter_lte.csv'
+            }
+        }
+        df_elf.filter(**config)
+        result_filename = os.path.join('result', 'filter', 'filter_lte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
 
 if __name__ == '__main__':
     unittest.main()

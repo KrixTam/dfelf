@@ -1,4 +1,4 @@
-,Unnamed: 0,brand,style,rating
-1,1,Yum Yum,cup,4.0
-3,3,Indomie,pack,15.0
-4,4,Indomie,pack,5.0
+﻿num,brand,style,rating
+1,Yum Yum,cup,4.0
+3,Indomie,pack,15.0
+4,Indomie,pack,5.0

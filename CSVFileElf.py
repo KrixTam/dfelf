@@ -18,7 +18,8 @@ class CSVFileElf(DataFileElf):
                 'add': {
                     'base': {
                         'name': 'base_filename',
-                        'key': 'key_field'
+                        'key': 'key_field',
+                        'drop_duplicates': False,
                     },
                     'output': {
                         'name': 'output_filename',
@@ -37,7 +38,9 @@ class CSVFileElf(DataFileElf):
                 'join': {
 
                 },
-                'exclude': {},
+                'exclude': {
+
+                },
                 'filter': {},
                 'split': {
                     'input': 'input_filename',
@@ -59,7 +62,8 @@ class CSVFileElf(DataFileElf):
                                 "type": "object",
                                 "properties": {
                                     'name': {"type": "string"},
-                                    'key': {"type": "string"}
+                                    'key': {"type": "string"},
+                                    'drop_duplicates': {"type": "boolean"}
                                 }
                             },
                             'output': {
@@ -129,8 +133,7 @@ class CSVFileElf(DataFileElf):
         log_filename = 'drop_duplicates' + moment().format('.YYYYMMDD.HHmmss') + '.log'
         filename = self.get_log_path(log_filename)
         duplicates = df[mask]
-        duplicates.to_csv(filename)
-        # CSVFileElf.to_csv_without_bom(duplicates, filename)
+        CSVFileElf.to_csv_with_bom(duplicates, filename)
         else_mask = ~ mask
         return df[else_mask], log_filename
 
@@ -164,7 +167,6 @@ class CSVFileElf(DataFileElf):
         content = pd.read_csv(filename, dtype=str)
         return content
 
-    # TODO：增加去重；
     def add(self, **kwargs):
         new_kwargs = {
             'add': kwargs
@@ -172,6 +174,8 @@ class CSVFileElf(DataFileElf):
         self.set_config(**new_kwargs)
         df_ori = self.read_content(self._config['add']['base']['name'])
         key_ori = self._config['add']['base']['key']
+        if self._config['add']['base']['drop_duplicates']:
+            df_ori = self.drop_duplicates(df_ori, key_ori)[0]
         for tag in self._config['add']['tags']:
             df2 = self.read_content(tag['name'])
             key_right = tag['key']

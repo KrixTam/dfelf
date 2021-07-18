@@ -5,9 +5,6 @@ import os
 from CSVFileElf import CSVFileElf
 
 
-# import pandas as pd
-
-
 class TestCSVFileElf(unittest.TestCase):
 
     def test_drop_duplicates(self):
@@ -28,6 +25,31 @@ class TestCSVFileElf(unittest.TestCase):
             },
             'output': {
                 'name': 'test_add.csv'
+            },
+            'tags': [
+                {
+                    'name': os.path.join('sources', 'df3.csv'),
+                    'key': 'key',
+                    'fields': ['new_value'],
+                    'defaults': ['0.0']
+                }
+            ]
+        }
+        df_elf.add(**config)
+        result_filename = os.path.join('sources', 'add.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_add_duplicates(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': {
+                'name': os.path.join('sources', 'df4.csv'),
+                'key': 'key',
+                'drop_duplicates': True,
+            },
+            'output': {
+                'name': 'test_add_d.csv'
             },
             'tags': [
                 {

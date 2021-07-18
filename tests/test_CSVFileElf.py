@@ -2,31 +2,33 @@
 
 import unittest
 import os
-from CVSFileElf import CVSFileElf
+from CSVFileElf import CSVFileElf
 
 
 # import pandas as pd
 
 
-class TestCVSFileElf(unittest.TestCase):
+class TestCSVFileElf(unittest.TestCase):
 
     def test_drop_duplicates(self):
         input_filename = os.path.join('sources', 'ori_data.csv')
         log_result = os.path.join('result', 'drop_duplicates.ori.log')
-        df_elf = CVSFileElf()
+        df_elf = CSVFileElf()
         df = df_elf.read_content(input_filename)
         log_filename = df_elf.drop_duplicates(df, 'brand')[1]
         log_file = os.path.join('log', log_filename)
         self.assertEqual(df_elf.checksum(log_file), df_elf.checksum(log_result))
 
     def test_add(self):
-        df_elf = CVSFileElf()
+        df_elf = CSVFileElf()
         config = {
             'base': {
                 'name': os.path.join('sources', 'df1.csv'),
                 'key': 'key'
             },
-            'output': 'test_add.csv',
+            'output': {
+                'name': 'test_add.csv'
+            },
             'tags': [
                 {
                     'name': os.path.join('sources', 'df3.csv'),
@@ -38,11 +40,11 @@ class TestCVSFileElf(unittest.TestCase):
         }
         df_elf.add(**config)
         result_filename = os.path.join('sources', 'add.csv')
-        dist_filename = df_elf.get_output_path(config['output'])
+        dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
     def test_split(self):
-        df_elf = CVSFileElf()
+        df_elf = CSVFileElf()
         config = {
             'input': os.path.join('sources', 'products_p3.csv'),
             'output': {

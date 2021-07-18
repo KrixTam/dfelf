@@ -39,7 +39,19 @@ class CSVFileElf(DataFileElf):
 
                 },
                 'exclude': {
-
+                    'input': 'input_filename',
+                    'exclusion': [
+                        {
+                            'key': 'field',
+                            'op': '=',
+                            'value': 123
+                        }
+                    ],
+                    'output': {
+                        'name': 'output_filename',
+                        'BOM': False,
+                        'non-numeric': []
+                    }
                 },
                 'filter': {},
                 'split': {
@@ -101,7 +113,35 @@ class CSVFileElf(DataFileElf):
                         'type': 'object'
                     },
                     'exclude': {
-                        'type': 'object'
+                        'type': 'object',
+                        "properties": {
+                            'input': {"type": "string"},
+                            'exclusion': {
+                                "type": "array",
+                                "items": {
+                                    'type': 'object',
+                                    "properties": {
+                                        'key': {"type": "string"},
+                                        'op': {
+                                            "type": "string",
+                                            "enum": ['=', '!=', '>', '>=', '<=', '<']
+                                        },
+                                        'value': {"type": ["number", "string"]}
+                                    }
+                                }
+                            },
+                            'output': {
+                                "type": "object",
+                                "properties": {
+                                    'name': {"type": "string"},
+                                    'BOM': {"type": "boolean"},
+                                    'non-numeric': {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
                     },
                     'filter': {
                         'type': 'object'
@@ -146,19 +186,22 @@ class CSVFileElf(DataFileElf):
         return df_export
 
     @staticmethod
-    def to_csv(df, output_filename, bom, nn=[]):
+    def to_csv(df, output_filename, bom, non_numeric=None):
+        nn = non_numeric if non_numeric else []
         if bom:
             CSVFileElf.to_csv_with_bom(df, output_filename, nn)
         else:
             CSVFileElf.to_csv_without_bom(df, output_filename, nn)
 
     @staticmethod
-    def to_csv_without_bom(df, output_filename, nn=[]):
+    def to_csv_without_bom(df, output_filename, non_numeric=None):
+        nn = non_numeric if non_numeric else []
         df_export = CSVFileElf.tidy(df, nn)
         df_export.to_csv(output_filename, index=False)
 
     @staticmethod
-    def to_csv_with_bom(df, output_filename, nn=[]):
+    def to_csv_with_bom(df, output_filename, non_numeric=None):
+        nn = non_numeric if non_numeric else []
         df_export = CSVFileElf.tidy(df, nn)
         df_export.to_csv(output_filename, index=False, encoding='utf-8-sig')
 
@@ -166,6 +209,12 @@ class CSVFileElf(DataFileElf):
         filename = self.get_filename_with_path(cvs_filename)
         content = pd.read_csv(filename, dtype=str)
         return content
+
+    def to_output_file(self, df, key):
+        output_filename = self.get_output_path(self._config[key]['output']['name'])
+        bom = self._config[key]['output']['BOM']
+        nn = self._config[key]['output']['non-numeric']
+        CSVFileElf.to_csv(df, output_filename, bom, nn)
 
     def add(self, **kwargs):
         new_kwargs = {
@@ -190,10 +239,7 @@ class CSVFileElf(DataFileElf):
             df_ori = pd.merge(df_ori, df2, how="left", left_on=key_ori, right_on=key_right)
             for x in range(len(fields)):
                 df_ori[fields[x]].fillna(defaults[x], inplace=True)
-        output_filename = self.get_output_path(self._config['add']['output']['name'])
-        bom = self._config['add']['output']['BOM']
-        nn = self._config['add']['output']['non-numeric']
-        CSVFileElf.to_csv(df_ori, output_filename, bom, nn)
+        self.to_output_file(df_ori, 'add')
 
     def join(self, **kwargs):
         new_kwargs = {
@@ -206,6 +252,54 @@ class CSVFileElf(DataFileElf):
             'exclude': kwargs
         }
         self.set_config(**new_kwargs)
+        input_filename = self._config['exclude']['input']
+        df_ori = self.read_content(input_filename)
+        exclusion = self._config['exclude']['exclusion']
+        for e in exclusion:
+            key = e['key']
+            op = e['op']
+            value = e['value']
+            if isinstance(value, str):
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key] != value]
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key] == value]
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key] <= value]
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key] < value]
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key] >= value]
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key] > value]
+                    continue
+            else:
+                key_tmp = key + '_tmp'
+                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                    continue
+        self.to_output_file(df_ori, 'exclude')
 
     def filter(self, **kwargs):
         new_kwargs = {
@@ -242,4 +336,3 @@ class CSVFileElf(DataFileElf):
                     CSVFileElf.to_csv_without_bom(tmp_df, output_filename, non_numeric)
         else:
             raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')
-

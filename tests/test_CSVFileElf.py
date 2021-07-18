@@ -65,7 +65,247 @@ class TestCSVFileElf(unittest.TestCase):
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
-    def test_split(self):
+    def test_exclude_n01(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_=.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '!=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_!=.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_!=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '>',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_gt.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_gt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n04(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '>=',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_gte.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_gte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n05(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '<',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_lt.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_lt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n06(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '<=',
+                    'value': 0
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_lte.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_n_lte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s01(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_=.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '!=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_!=.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_!=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '>',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_gt.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_gt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s04(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '>=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_gte.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_gte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s05(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '<',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_lt.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_lt.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_s06(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join('sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '<=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_lte.csv'
+            }
+        }
+        df_elf.exclude(**config)
+        result_filename = os.path.join('result', 'exclude', 'exclude_lte.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_split_01(self):
         df_elf = CSVFileElf()
         config = {
             'input': os.path.join('sources', 'products_p3.csv'),
@@ -78,9 +318,12 @@ class TestCSVFileElf(unittest.TestCase):
         filenames = ['B1', 'B2', 'B3', 'B4']
         for filename in filenames:
             real_filename = config['output']['prefix'] + '_' + filename + '.csv'
-            result_filename = os.path.join('result', real_filename)
+            result_filename = os.path.join('result', 'split', real_filename)
             dist_filename = df_elf.get_output_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_split_02(self):
+        df_elf = CSVFileElf()
         config = {
             'input': os.path.join('sources', 'products_p3.csv'),
             'output': {
@@ -93,7 +336,7 @@ class TestCSVFileElf(unittest.TestCase):
         filenames = ['D1', 'D2']
         for filename in filenames:
             real_filename = config['output']['prefix'] + '_' + filename + '.csv'
-            result_filename = os.path.join('result', real_filename)
+            result_filename = os.path.join('result', 'split', real_filename)
             dist_filename = df_elf.get_output_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 

@@ -4,6 +4,7 @@ import pandas as pd
 from DataFileElf import DataFileElf
 from moment import moment
 from config import config
+import logging
 
 
 class CSVFileElf(DataFileElf):
@@ -36,7 +37,18 @@ class CSVFileElf(DataFileElf):
                     ]
                 },
                 'join': {
-
+                    'base': 'base_filename',
+                    'output': {
+                        'name': 'output_filename',
+                        'BOM': False,
+                        'non-numeric': []
+                    },
+                    'files': [
+                        {
+                            'name': 'filename',
+                            'mappings': {}
+                        }
+                    ]
                 },
                 'exclude': {
                     'input': 'input_filename',
@@ -124,7 +136,31 @@ class CSVFileElf(DataFileElf):
                         }
                     },
                     'join': {
-                        'type': 'object'
+                        'type': 'object',
+                        "properties": {
+                            'base': {"type": "string"},
+                            'output': {
+                                "type": "object",
+                                "properties": {
+                                    'name': {"type": "string"},
+                                    'BOM': {"type": "boolean"},
+                                    'non-numeric': {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                }
+                            },
+                            'files': {
+                                "type": "array",
+                                "items": {
+                                    'type': 'object',
+                                    "properties": {
+                                        'name': {"type": "string"},
+                                        'mappings': {'type': 'object'}
+                                    }
+                                }
+                            }
+                        }
                     },
                     'exclude': {
                         'type': 'object',
@@ -215,8 +251,11 @@ class CSVFileElf(DataFileElf):
         log_filename = 'drop_duplicates' + moment().format('.YYYYMMDD.HHmmss') + '.log'
         filename = self.get_log_path(log_filename)
         duplicates = df[mask]
-        CSVFileElf.to_csv_with_bom(duplicates, filename)
         else_mask = ~ mask
+        if not duplicates.empty:
+            CSVFileElf.to_csv_with_bom(duplicates, filename)
+            logging.warning('存在需要进行去重处理的值')
+            logging.warning(duplicates)
         return df[else_mask], log_filename
 
     @staticmethod
@@ -268,17 +307,18 @@ class CSVFileElf(DataFileElf):
         if self._config['add']['base']['drop_duplicates']:
             df_ori = self.drop_duplicates(df_ori, key_ori)[0]
         for tag in self._config['add']['tags']:
-            df2 = self.read_content(tag['name'])
+            df_tag = self.read_content(tag['name'])
             key_right = tag['key']
+            df_tag = self.drop_duplicates(df_tag, key_right)[0]
             fields = tag['fields']
             defaults = tag['defaults']
-            columns = df2.columns
+            columns = df_tag.columns
             for col in columns:
                 if col in fields or col == key_right:
                     pass
                 else:
-                    df2.drop([col], axis=1, inplace=True)
-            df_ori = pd.merge(df_ori, df2, how="left", left_on=key_ori, right_on=key_right)
+                    df_tag.drop([col], axis=1, inplace=True)
+            df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_right)
             for x in range(len(fields)):
                 df_ori[fields[x]].fillna(defaults[x], inplace=True)
         self.to_output_file(df_ori, 'add')
@@ -288,6 +328,16 @@ class CSVFileElf(DataFileElf):
             'join': kwargs
         }
         self.set_config(**new_kwargs)
+        base_filename = self._config['join']['base']
+        df_ori = self.read_content(base_filename)
+        files = self._config['join']['files']
+        for file in files:
+            df = self.read_content(file['name'])
+            if len(file['mappings']) > 0:
+                for key, value in file['mappings'].items():
+                    df.rename(columns={key: value}, inplace=True)
+            df_ori = df_ori.append(df)
+        self.to_output_file(df_ori, 'join')
 
     def exclude(self, **kwargs):
         new_kwargs = {

@@ -580,6 +580,29 @@ class TestCSVFileElf(unittest.TestCase):
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_join(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': os.path.join('sources', 'df4.csv'),
+            'output': {
+                'name': 'test_join.csv'
+            },
+            'files': [
+                {
+                    'name': os.path.join('sources', 'df3.csv'),
+                    'mappings': {'new_value': 'value'}
+                },
+                {
+                    'name': os.path.join('sources', 'df2.csv'),
+                    'mappings': {}
+                }
+            ]
+        }
+        df_elf.join(**config)
+        result_filename = os.path.join('result', 'join.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
 
 if __name__ == '__main__':
     unittest.main()

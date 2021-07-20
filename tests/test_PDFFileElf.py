@@ -47,7 +47,25 @@ class TestPDFFileElf(unittest.TestCase):
             'output': 'mr.pdf'
         }
         df_elf.image2pdf(**config)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')), df_elf.checksum(os.path.join('result', 'mr.pdf')))
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')),
+                         df_elf.checksum(os.path.join('result', 'mr.pdf')))
+
+    def test_2image(self):
+        df_elf = PDFFileElf()
+        config = {
+            # 'input': os.path.join('sources', 'dive-into-python3.pdf'),
+            'input': os.path.join('sources', '艾瑞咨询：2021年中国对话机器人chatbot行业发展研究报告.pdf'),
+            'output': '艾瑞',
+            'format': 'png',
+            'pages': [4, 3]
+        }
+        df_elf.to_image(**config)
+        filename_01 = config['output'] + '_4.png'
+        filename_02 = config['output'] + '_3.png'
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)),
+                         df_elf.checksum(os.path.join('result', filename_01)))
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)),
+                         df_elf.checksum(os.path.join('result', filename_02)))
 
 
 if __name__ == '__main__':

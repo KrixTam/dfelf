@@ -5,6 +5,7 @@ from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
 from config import config
 from PIL import Image
+from pdf2image import convert_from_path, convert_from_bytes
 
 
 class PDFFileElf(DataFileElf):
@@ -25,7 +26,13 @@ class PDFFileElf(DataFileElf):
                     'images': [],
                     'output': 'output_filename'
                 },
-                '2image': {}
+                '2image': {
+                    'input': 'input_filename',
+                    'output': 'output_filename_prefix',
+                    'format': 'png',
+                    'dpi': 200,
+                    'pages': []
+                }
             },
             'schema': {
                 'type': 'object',
@@ -37,7 +44,7 @@ class PDFFileElf(DataFileElf):
                             'output': {'type': 'string'},
                             'pages': {
                                 'type': 'array',
-                                'items': {'type': 'number'}
+                                'items': {'type': 'integer'}
                             }
                         }
                     },
@@ -52,7 +59,20 @@ class PDFFileElf(DataFileElf):
                         }
                     },
                     '2image': {
-                        'type': 'object'
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'format': {
+                                "type": "string",
+                                "enum": ['png', 'jpg', 'tif']
+                            },
+                            'dpi': {'type': 'integer'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'integer'}
+                            }
+                        }
                     }
                 }
             }
@@ -103,6 +123,22 @@ class PDFFileElf(DataFileElf):
         else:
             logging.warning('"from_images"没有设置，请设置后重试。')
 
-    def to_image(self, *args):
-        # TODO
-        pass
+    def to_image(self, **kwargs):
+        new_kwargs = {
+            '2image': kwargs
+        }
+        self.set_config(**new_kwargs)
+        formats = {
+            'png': 'PNG',
+            'jpg': 'JPEG',
+            'tif': 'TIFF'
+        }
+        input_filename = self._config['2image']['input']
+        output_filename_prefix = self._config['2image']['output']
+        image_format = self._config['2image']['format']
+        output_pages = self._config['2image']['pages']
+        dpi = self._config['2image']['dpi']
+        pages = convert_from_path(input_filename, dpi)
+        for page_index in output_pages:
+            output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
+            pages[page_index-1].save(self.get_output_path(output_filename), formats[image_format])

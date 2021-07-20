@@ -16,33 +16,56 @@ class PDFFileElf(DataFileElf):
         self._config = config({
             'name': 'PDFFileElf',
             'default': {
-                'input': 'input_filename',
-                'output': 'output_filename',
-                'concat': [],
-                'from_images': []
+                'reorganize': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'pages': []
+                },
+                'image2pdf': {
+                    'images': [],
+                    'output': 'output_filename'
+                },
+                '2image': {}
             },
             'schema': {
                 'type': 'object',
                 'properties': {
-                    'input': {'type': 'string'},
-                    'output': {'type': 'string'},
-                    'concat': {
-                        'type': 'array',
-                        'items': {'type': 'number'}
+                    'reorganize': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'number'}
+                            }
+                        }
                     },
-                    'from_images': {
-                        'type': 'array',
-                        'items': {'type': 'string'}
+                    'image2pdf': {
+                        'type': 'object',
+                        'properties': {
+                            'images': {
+                                'type': 'array',
+                                'items': {'type': 'string'}
+                            },
+                            'output': {'type': 'string'}
+                        }
+                    },
+                    '2image': {
+                        'type': 'object'
                     }
                 }
             }
         })
 
-    def reorganize(self, default_output=True, **kwargs):
-        self.set_config(**kwargs)
-        input_filename = self._config['input']
-        output_filename = self._config['output']
-        pages = self._config['concat']
+    def reorganize(self, **kwargs):
+        new_kwargs = {
+            'reorganize': kwargs
+        }
+        self.set_config(**new_kwargs)
+        input_filename = self._config['reorganize']['input']
+        output_filename = self._config['reorganize']['output']
+        pages = self._config['reorganize']['pages']
         if len(pages) > 0:
             output = PdfFileWriter()
             input_stream = open(self.get_filename_with_path(input_filename), "rb")
@@ -55,8 +78,6 @@ class PDFFileElf(DataFileElf):
                 else:
                     logging.warning('PDF文件"' + input_filename + '"中不存在第' + str(page) + '的内容，请检查PDF原文档的内容正确性或者配置正确性。')
             ot_filename = self.get_filename_with_path(output_filename)
-            if default_output:
-                ot_filename = self.get_output_path(output_filename)
             output_stream = open(ot_filename, "wb")
             output.write(output_stream)
             output_stream.close()
@@ -64,10 +85,13 @@ class PDFFileElf(DataFileElf):
         else:
             logging.warning('"concat"没有设置，请设置后重试。')
 
-    def from_image(self, **kwargs):
-        self.set_config(**kwargs)
-        image_filenames = self._config['from_images']
-        output_filename = self._config['output']
+    def image2pdf(self, **kwargs):
+        new_kwargs = {
+            'image2pdf': kwargs
+        }
+        self.set_config(**new_kwargs)
+        image_filenames = self._config['image2pdf']['images']
+        output_filename = self._config['image2pdf']['output']
         num_filenames = len(image_filenames)
         if num_filenames > 0:
             image_0 = Image.open(self.get_filename_with_path(image_filenames[0])).convert('RGB')

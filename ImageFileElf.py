@@ -163,3 +163,9 @@ class ImageFileElf(DataFileElf):
             draw.text(loc, text, fill=color, font=font_draw)
             img.paste(txt_img, (0, 0), txt_img)
             img.save(self.get_output_path(output_filename))
+
+    def qrcode(self, **kwargs):
+        pass
+
+    def to_base64(self, **kwargs):
+        pass

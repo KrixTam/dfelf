@@ -5,7 +5,8 @@ from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
 from config import config
 from PIL import Image
-from pdf2image import convert_from_path, convert_from_bytes
+from pdf2image import convert_from_bytes
+from io import BytesIO
 
 
 class PDFFileElf(DataFileElf):
@@ -103,7 +104,7 @@ class PDFFileElf(DataFileElf):
             output_stream.close()
             input_stream.close()
         else:
-            logging.warning('"concat"没有设置，请设置后重试。')
+            logging.warning('"pages"没有设置，请设置后重试。')
 
     def image2pdf(self, **kwargs):
         new_kwargs = {
@@ -138,7 +139,16 @@ class PDFFileElf(DataFileElf):
         image_format = self._config['2image']['format']
         output_pages = self._config['2image']['pages']
         dpi = self._config['2image']['dpi']
-        pages = convert_from_path(input_filename, dpi)
-        for page_index in output_pages:
-            output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-            pages[page_index-1].save(self.get_output_path(output_filename), formats[image_format])
+        if len(output_pages) > 0:
+            input_stream = open(self.get_filename_with_path(input_filename), "rb")
+            pdf_file = PdfFileReader(input_stream, strict=False)
+            for page_index in output_pages:
+                memory_output = PdfFileWriter()
+                memory_output.addPage(pdf_file.getPage(page_index-1))
+                output_stream = BytesIO()
+                memory_output.write(output_stream)
+                pages = convert_from_bytes(output_stream.getvalue(), dpi)
+                output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
+                pages[0].save(self.get_output_path(output_filename), formats[image_format])
+        else:
+            logging.warning('"pages"没有设置，请设置后重试。')

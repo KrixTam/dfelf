@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import logging
 from config import config
 import re
+import base64
 
 
 def isValidColor(color_str):
@@ -87,7 +88,10 @@ class ImageFileElf(DataFileElf):
         })
 
     def to_favicon(self, **kwargs):
-        self.set_config(**kwargs)
+        new_kwargs = {
+            'favicon': kwargs
+        }
+        self.set_config(**new_kwargs)
         if self._config.is_default('favicon'):
             logging.warning('"favicon"没有设置正确，请设置后重试。')
         else:
@@ -106,7 +110,10 @@ class ImageFileElf(DataFileElf):
                 img_resize.save(self.get_output_path(output_filename))
 
     def splice(self, **kwargs):
-        self.set_config(**kwargs)
+        new_kwargs = {
+            'splice': kwargs
+        }
+        self.set_config(**new_kwargs)
         if self._config.is_default('splice'):
             logging.warning('"splice"没有设置正确，请设置后重试。')
         else:
@@ -139,7 +146,10 @@ class ImageFileElf(DataFileElf):
                 logging.warning('"splice"中没有正确设置"images"参数，请设置后重试。')
 
     def watermark(self, **kwargs):
-        self.set_config(**kwargs)
+        new_kwargs = {
+            'watermark': kwargs
+        }
+        self.set_config(**new_kwargs)
         if self._config.is_default('watermark'):
             logging.warning('"watermark"没有设置正确，请设置后重试。')
         else:
@@ -168,4 +178,8 @@ class ImageFileElf(DataFileElf):
         pass
 
     def to_base64(self, **kwargs):
-        pass
+        new_kwargs = {
+            'watermark': kwargs
+        }
+        self.set_config(**new_kwargs)
+        encoded = base64.b64encode(open("filename.png", "rb").read())

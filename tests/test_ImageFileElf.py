@@ -11,7 +11,7 @@ class TestImageFileElf(unittest.TestCase):
         input_filename = os.path.join('sources', 'icon.png')
         favicon_settings = {'input': input_filename}
         df_elf = ImageFileElf()
-        df_elf.to_favicon(favicon=favicon_settings)
+        df_elf.to_favicon(**favicon_settings)
         icon_sizes = [16, 24, 32, 48, 64, 128, 255]
         for x in icon_sizes:
             filename = 'favicon' + str(x) + '.ico'
@@ -21,7 +21,7 @@ class TestImageFileElf(unittest.TestCase):
             'input': input_filename,
             'size': 192
         }
-        df_elf.to_favicon(favicon=favicon_settings)
+        df_elf.to_favicon(**favicon_settings)
         filename = 'favicon192.ico'
         result_filename = os.path.join('result', 'IFE', filename)
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
@@ -36,7 +36,7 @@ class TestImageFileElf(unittest.TestCase):
             'images': [input_filename, input_filename],
             'width': 125
         }
-        df_elf.splice(splice=splice_config)
+        df_elf.splice(**splice_config)
         result_filename = os.path.join('result', filename)
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
                          df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
@@ -55,7 +55,7 @@ class TestImageFileElf(unittest.TestCase):
             'font_size': 14,
             'alpha': 20
         }
-        df_elf.watermark(watermark=watermark)
+        df_elf.watermark(**watermark)
         result_filename = os.path.join('result', filename)
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
                          df_elf.checksum(df_elf.get_filename_with_path(result_filename)))

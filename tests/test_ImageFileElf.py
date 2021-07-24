@@ -60,6 +60,21 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
                          df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
 
+    def test_base64(self):
+        df_elf = ImageFileElf()
+        input_filename = os.path.join('sources', 'icon.png')
+        config = {
+            'input': input_filename
+        }
+        image_data, file_extension = df_elf.to_base64(**config)
+        output_filename = 'test_base64.png'
+        config_02 = {
+            'input': image_data,
+            'output': output_filename
+        }
+        df_elf.from_base64(**config_02)
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(input_filename))
+
 
 if __name__ == '__main__':
     unittest.main()

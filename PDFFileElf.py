@@ -150,5 +150,6 @@ class PDFFileElf(DataFileElf):
                 pages = convert_from_bytes(output_stream.getvalue(), dpi)
                 output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
                 pages[0].save(self.get_output_path(output_filename), formats[image_format])
+            input_stream.close()
         else:
             logging.warning('"pages"没有设置，请设置后重试。')

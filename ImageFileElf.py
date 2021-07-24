@@ -6,6 +6,8 @@ import logging
 from config import config
 import re
 import base64
+from string import Template
+import os
 
 
 def isValidColor(color_str):
@@ -45,6 +47,14 @@ class ImageFileElf(DataFileElf):
                     'x': 5,
                     'y': 5,
                     'alpha': 50
+                },
+                '2base64': {
+                    'input': 'input_filename',
+                    'css_format': False
+                },
+                'base64': {
+                    'input': 'base64 string',
+                    'output': 'output_filename'
                 }
             },
             'schema': {
@@ -81,6 +91,20 @@ class ImageFileElf(DataFileElf):
                             'x': {'type': 'number'},
                             'y': {'type': 'number'},
                             'alpha': {'type': 'number'}
+                        }
+                    },
+                    '2base64': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'css_format': {"type": "boolean"}
+                        }
+                    },
+                    'base64': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'}
                         }
                     }
                 }
@@ -179,7 +203,31 @@ class ImageFileElf(DataFileElf):
 
     def to_base64(self, **kwargs):
         new_kwargs = {
-            'watermark': kwargs
+            '2base64': kwargs
         }
         self.set_config(**new_kwargs)
-        encoded = base64.b64encode(open("filename.png", "rb").read())
+        if self._config.is_default('2base64'):
+            logging.warning('"2base64"没有设置正确，请设置后重试。')
+            return None, None
+        else:
+            input_filename = self._config['2base64']['input']
+            file_extension = os.path.splitext(input_filename)[1].replace('.', '')
+            with open(input_filename, "rb") as fh:
+                encoded = base64.b64encode(fh.read()).decode('ascii')
+                if self._config['2base64']['css_format']:
+                    encoded = Template('"data:image/${extension};base64,${base64}"').substitute(extension=file_extension, base64=encoded)
+                print(encoded)
+                return encoded, file_extension
+
+    def from_base64(self, **kwargs):
+        new_kwargs = {
+            'base64': kwargs
+        }
+        self.set_config(**new_kwargs)
+        if self._config.is_default('base64'):
+            logging.warning('"base64"没有设置正确，请设置后重试。')
+        else:
+            input_string = self._config['base64']['input']
+            output_filename = self._config['base64']['output']
+            with open(self.get_output_path(output_filename), "wb") as fh:
+                fh.write(base64.b64decode(input_string))

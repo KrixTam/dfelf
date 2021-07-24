@@ -53,9 +53,8 @@ class TestPDFFileElf(unittest.TestCase):
     def test_2image(self):
         df_elf = PDFFileElf()
         config = {
-            # 'input': os.path.join('sources', 'dive-into-python3.pdf'),
-            'input': os.path.join('sources', '艾瑞咨询：2021年中国对话机器人chatbot行业发展研究报告.pdf'),
-            'output': '艾瑞',
+            'input': os.path.join('sources', 'dive-into-python3.pdf'),
+            'output': 'dp',
             'format': 'png',
             'pages': [4, 3]
         }

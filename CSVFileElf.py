@@ -302,177 +302,192 @@ class CSVFileElf(DataFileElf):
             'add': kwargs
         }
         self.set_config(**new_kwargs)
-        df_ori = self.read_content(self._config['add']['base']['name'])
-        key_ori = self._config['add']['base']['key']
-        if self._config['add']['base']['drop_duplicates']:
-            df_ori = self.drop_duplicates(df_ori, key_ori)[0]
-        for tag in self._config['add']['tags']:
-            df_tag = self.read_content(tag['name'])
-            key_right = tag['key']
-            df_tag = self.drop_duplicates(df_tag, key_right)[0]
-            fields = tag['fields']
-            defaults = tag['defaults']
-            columns = df_tag.columns
-            for col in columns:
-                if col in fields or col == key_right:
-                    pass
-                else:
-                    df_tag.drop([col], axis=1, inplace=True)
-            df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_right)
-            for x in range(len(fields)):
-                df_ori[fields[x]].fillna(defaults[x], inplace=True)
-        self.to_output_file(df_ori, 'add')
+        if self._config.is_default('add'):
+            logging.warning('"add"没有设置正确，请设置后重试。')
+        else:
+            df_ori = self.read_content(self._config['add']['base']['name'])
+            key_ori = self._config['add']['base']['key']
+            if self._config['add']['base']['drop_duplicates']:
+                df_ori = self.drop_duplicates(df_ori, key_ori)[0]
+            for tag in self._config['add']['tags']:
+                df_tag = self.read_content(tag['name'])
+                key_right = tag['key']
+                df_tag = self.drop_duplicates(df_tag, key_right)[0]
+                fields = tag['fields']
+                defaults = tag['defaults']
+                columns = df_tag.columns
+                for col in columns:
+                    if col in fields or col == key_right:
+                        pass
+                    else:
+                        df_tag.drop([col], axis=1, inplace=True)
+                df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_right)
+                for x in range(len(fields)):
+                    df_ori[fields[x]].fillna(defaults[x], inplace=True)
+            self.to_output_file(df_ori, 'add')
 
     def join(self, **kwargs):
         new_kwargs = {
             'join': kwargs
         }
         self.set_config(**new_kwargs)
-        base_filename = self._config['join']['base']
-        df_ori = self.read_content(base_filename)
-        files = self._config['join']['files']
-        for file in files:
-            df = self.read_content(file['name'])
-            if len(file['mappings']) > 0:
-                for key, value in file['mappings'].items():
-                    df.rename(columns={key: value}, inplace=True)
-            df_ori = df_ori.append(df)
-        self.to_output_file(df_ori, 'join')
+        if self._config.is_default('join'):
+            logging.warning('"join"没有设置正确，请设置后重试。')
+        else:
+            base_filename = self._config['join']['base']
+            df_ori = self.read_content(base_filename)
+            files = self._config['join']['files']
+            for file in files:
+                df = self.read_content(file['name'])
+                if len(file['mappings']) > 0:
+                    for key, value in file['mappings'].items():
+                        df.rename(columns={key: value}, inplace=True)
+                df_ori = df_ori.append(df)
+            self.to_output_file(df_ori, 'join')
 
     def exclude(self, **kwargs):
         new_kwargs = {
             'exclude': kwargs
         }
         self.set_config(**new_kwargs)
-        input_filename = self._config['exclude']['input']
-        df_ori = self.read_content(input_filename)
-        exclusion = self._config['exclude']['exclusion']
-        for e in exclusion:
-            key = e['key']
-            op = e['op']
-            value = e['value']
-            if isinstance(value, str):
-                if '=' == op:
-                    df_ori = df_ori.loc[df_ori[key] != value]
-                    continue
-                if '!=' == op:
-                    df_ori = df_ori.loc[df_ori[key] == value]
-                    continue
-                if '>' == op:
-                    df_ori = df_ori.loc[df_ori[key] <= value]
-                    continue
-                if '>=' == op:
-                    df_ori = df_ori.loc[df_ori[key] < value]
-                    continue
-                if '<' == op:
-                    df_ori = df_ori.loc[df_ori[key] >= value]
-                    continue
-                if '<=' == op:
-                    df_ori = df_ori.loc[df_ori[key] > value]
-                    continue
-            else:
-                key_tmp = key + '_tmp'
-                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
-                if '=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
-                    continue
-                if '!=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
-                    continue
-                if '>' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
-                    continue
-                if '>=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
-                    continue
-                if '<' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
-                    continue
-                if '<=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
-                    continue
-        self.to_output_file(df_ori, 'exclude')
+        if self._config.is_default('exclude'):
+            logging.warning('"exclude"没有设置正确，请设置后重试。')
+        else:
+            input_filename = self._config['exclude']['input']
+            df_ori = self.read_content(input_filename)
+            exclusion = self._config['exclude']['exclusion']
+            for e in exclusion:
+                key = e['key']
+                op = e['op']
+                value = e['value']
+                if isinstance(value, str):
+                    if '=' == op:
+                        df_ori = df_ori.loc[df_ori[key] != value]
+                        continue
+                    if '!=' == op:
+                        df_ori = df_ori.loc[df_ori[key] == value]
+                        continue
+                    if '>' == op:
+                        df_ori = df_ori.loc[df_ori[key] <= value]
+                        continue
+                    if '>=' == op:
+                        df_ori = df_ori.loc[df_ori[key] < value]
+                        continue
+                    if '<' == op:
+                        df_ori = df_ori.loc[df_ori[key] >= value]
+                        continue
+                    if '<=' == op:
+                        df_ori = df_ori.loc[df_ori[key] > value]
+                        continue
+                else:
+                    key_tmp = key + '_tmp'
+                    df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                    if '=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                        continue
+                    if '!=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                        continue
+                    if '>' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                        continue
+                    if '>=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                        continue
+                    if '<' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                        continue
+                    if '<=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                        continue
+            self.to_output_file(df_ori, 'exclude')
 
     def filter(self, **kwargs):
         new_kwargs = {
             'filter': kwargs
         }
         self.set_config(**new_kwargs)
-        input_filename = self._config['filter']['input']
-        df_ori = self.read_content(input_filename)
-        filters = self._config['filter']['filters']
-        for f in filters:
-            key = f['key']
-            op = f['op']
-            value = f['value']
-            if isinstance(value, str):
-                if '=' == op:
-                    df_ori = df_ori.loc[df_ori[key] == value]
-                    continue
-                if '!=' == op:
-                    df_ori = df_ori.loc[df_ori[key] != value]
-                    continue
-                if '>' == op:
-                    df_ori = df_ori.loc[df_ori[key] > value]
-                    continue
-                if '>=' == op:
-                    df_ori = df_ori.loc[df_ori[key] >= value]
-                    continue
-                if '<' == op:
-                    df_ori = df_ori.loc[df_ori[key] < value]
-                    continue
-                if '<=' == op:
-                    df_ori = df_ori.loc[df_ori[key] <= value]
-                    continue
-            else:
-                key_tmp = key + '_tmp'
-                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
-                if '=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
-                    continue
-                if '!=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
-                    continue
-                if '>' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
-                    continue
-                if '>=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
-                    continue
-                if '<' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
-                    continue
-                if '<=' == op:
-                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
-                    continue
-        self.to_output_file(df_ori, 'filter')
+        if self._config.is_default('filter'):
+            logging.warning('"filter"没有设置正确，请设置后重试。')
+        else:
+            input_filename = self._config['filter']['input']
+            df_ori = self.read_content(input_filename)
+            filters = self._config['filter']['filters']
+            for f in filters:
+                key = f['key']
+                op = f['op']
+                value = f['value']
+                if isinstance(value, str):
+                    if '=' == op:
+                        df_ori = df_ori.loc[df_ori[key] == value]
+                        continue
+                    if '!=' == op:
+                        df_ori = df_ori.loc[df_ori[key] != value]
+                        continue
+                    if '>' == op:
+                        df_ori = df_ori.loc[df_ori[key] > value]
+                        continue
+                    if '>=' == op:
+                        df_ori = df_ori.loc[df_ori[key] >= value]
+                        continue
+                    if '<' == op:
+                        df_ori = df_ori.loc[df_ori[key] < value]
+                        continue
+                    if '<=' == op:
+                        df_ori = df_ori.loc[df_ori[key] <= value]
+                        continue
+                else:
+                    key_tmp = key + '_tmp'
+                    df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                    if '=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                        continue
+                    if '!=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                        continue
+                    if '>' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                        continue
+                    if '>=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                        continue
+                    if '<' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                        continue
+                    if '<=' == op:
+                        df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                        continue
+            self.to_output_file(df_ori, 'filter')
 
     def split(self, **kwargs):
         new_kwargs = {
             'split': kwargs
         }
         self.set_config(**new_kwargs)
-        input_filename = self._config['split']['input']
-        df_ori = self.read_content(input_filename)
-        key_name = self._config['split']['key']
-        columns = df_ori.columns
-        output_prefix = ''
-        if '' != self._config['split']['output']['prefix']:
-            output_prefix = self._config['split']['output']['prefix'] + '_'
-        non_numeric = self._config['split']['output']['non-numeric']
-        if key_name in columns:
-            split_keys = df_ori[key_name].unique()
-            if self._config['split']['output']['BOM']:
-                for key in split_keys:
-                    tmp_df = df_ori.loc[df_ori[key_name] == key]
-                    output_filename = self.get_output_path(output_prefix + key + '.csv')
-                    # tmp_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
-                    CSVFileElf.to_csv_with_bom(tmp_df, output_filename, non_numeric)
-            else:
-                for key in split_keys:
-                    tmp_df = df_ori.loc[df_ori[key_name] == key]
-                    output_filename = self.get_output_path(output_prefix + key + '.csv')
-                    # tmp_df.to_csv(output_filename, index=False)
-                    CSVFileElf.to_csv_without_bom(tmp_df, output_filename, non_numeric)
+        if self._config.is_default('split'):
+            logging.warning('"split"没有设置正确，请设置后重试。')
         else:
-            raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')
+            input_filename = self._config['split']['input']
+            df_ori = self.read_content(input_filename)
+            key_name = self._config['split']['key']
+            columns = df_ori.columns
+            output_prefix = ''
+            if '' != self._config['split']['output']['prefix']:
+                output_prefix = self._config['split']['output']['prefix'] + '_'
+            non_numeric = self._config['split']['output']['non-numeric']
+            if key_name in columns:
+                split_keys = df_ori[key_name].unique()
+                if self._config['split']['output']['BOM']:
+                    for key in split_keys:
+                        tmp_df = df_ori.loc[df_ori[key_name] == key]
+                        output_filename = self.get_output_path(output_prefix + key + '.csv')
+                        # tmp_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
+                        CSVFileElf.to_csv_with_bom(tmp_df, output_filename, non_numeric)
+                else:
+                    for key in split_keys:
+                        tmp_df = df_ori.loc[df_ori[key_name] == key]
+                        output_filename = self.get_output_path(output_prefix + key + '.csv')
+                        # tmp_df.to_csv(output_filename, index=False)
+                        CSVFileElf.to_csv_without_bom(tmp_df, output_filename, non_numeric)
+            else:
+                raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')

@@ -4,18 +4,11 @@ from DataFileElf import DataFileElf
 from PIL import Image, ImageDraw, ImageFont
 import logging
 from config import config
-import re
 import base64
 from string import Template
 import os
-
-
-def isValidColor(color_str):
-    p = re.compile('[A-Fa-f0-9]{6}')
-    if re.search(p, color_str):
-        return True
-    else:
-        return False
+import qrcode
+import cv2
 
 
 class ImageFileElf(DataFileElf):
@@ -55,7 +48,17 @@ class ImageFileElf(DataFileElf):
                 'base64': {
                     'input': 'base64 string',
                     'output': 'output_filename'
-                }
+                },
+                'qrcode': {
+                    'input': 'base64 string',
+                    'output': 'output_filename',
+                    'border': 2,
+                    'fill_color': "#000000",
+                    'back_color': "#FFFFFF"
+                },
+                'dqrcode': {
+                    'input': 'input_filename'
+                },
             },
             'schema': {
                 'type': 'object',
@@ -85,12 +88,19 @@ class ImageFileElf(DataFileElf):
                             'input': {'type': 'string'},
                             'output': {'type': 'string'},
                             'text': {'type': 'string'},
-                            'color': {'type': 'string'},
+                            'color': {
+                                'type': 'string',
+                                'pattern': '[A-Fa-f0-9]{6}'
+                            },
                             'font': {'type': 'string'},
                             'font_size': {'type': 'number'},
                             'x': {'type': 'number'},
                             'y': {'type': 'number'},
-                            'alpha': {'type': 'number'}
+                            'alpha': {
+                                'type': 'number',
+                                'minimum': 0,
+                                'maximum': 100
+                            }
                         }
                     },
                     '2base64': {
@@ -105,6 +115,31 @@ class ImageFileElf(DataFileElf):
                         'properties': {
                             'input': {'type': 'string'},
                             'output': {'type': 'string'}
+                        }
+                    },
+                    'qrcode': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'border': {
+                                'type': 'integer',
+                                'minimum': 0
+                            },
+                            'fill_color': {
+                                'type': 'string',
+                                'pattern': '^#[A-Fa-f0-9]{6}'
+                            },
+                            'back_color': {
+                                'type': 'string',
+                                'pattern': '^#[A-Fa-f0-9]{6}'
+                            }
+                        }
+                    },
+                    'dqrcode': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'}
                         }
                     }
                 }
@@ -185,10 +220,6 @@ class ImageFileElf(DataFileElf):
             color = self._config['watermark']['color']
             x = self._config['watermark']['x']
             y = self._config['watermark']['y']
-            if self._config['watermark']['alpha'] > 100 or self._config['watermark']['alpha'] < 0:
-                raise ValueError('"watermark"中的"alpha"取值范围为[0, 100]。')
-            if not isValidColor(color):
-                raise ValueError('"watermark"中的"color"不是六位的十六进制色值。')
             alpha = int(self._config['watermark']['alpha'] / 100 * 255)
             color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
             loc = (x, y)
@@ -199,7 +230,43 @@ class ImageFileElf(DataFileElf):
             img.save(self.get_output_path(output_filename))
 
     def qrcode(self, **kwargs):
-        pass
+        new_kwargs = {
+            'qrcode': kwargs
+        }
+        self.set_config(**new_kwargs)
+        if self._config.is_default('qrcode'):
+            logging.warning('"qrcode"没有设置正确，请设置后重试。')
+        else:
+            input_string = self._config['qrcode']['input']
+            output_filename = self._config['qrcode']['output']
+            # qr_image = qrcode.make(input_string)
+            border_val = self._config['qrcode']['border']
+            f_color = self._config['qrcode']['fill_color']
+            b_color = self._config['qrcode']['back_color']
+            qr = qrcode.QRCode(border=border_val)
+            qr.add_data(input_string)
+            qr_image = qr.make_image(fill_color=f_color, back_color=b_color)
+            qr_image.save(self.get_output_path(output_filename))
+
+    def decode_qrcode(self, **kwargs):
+        new_kwargs = {
+            'dqrcode': kwargs
+        }
+        self.set_config(**new_kwargs)
+        if self._config.is_default('dqrcode'):
+            logging.warning('"dqrcode"没有设置正确，请设置后重试。')
+            return None
+        else:
+            input_filename = self._config['dqrcode']['input']
+            image = cv2.imread(input_filename)
+            detector = cv2.QRCodeDetector()
+            data, vertices_array, binary_qrcode = detector.detectAndDecode(image)
+            if vertices_array is not None:
+                print(data)
+                return data
+            else:
+                logging.warning("图片中未能解析到二维码。")
+                return None
 
     def to_base64(self, **kwargs):
         new_kwargs = {

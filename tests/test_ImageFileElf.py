@@ -75,6 +75,21 @@ class TestImageFileElf(unittest.TestCase):
         df_elf.from_base64(**config_02)
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(input_filename))
 
+    def test_qrcode(self):
+        df_elf = ImageFileElf()
+        output_filename = 'test_qrcode.png'
+        url_data = 'http://mydomain.com/hello'
+        config_01 = {
+            'input': url_data,
+            'output': output_filename
+        }
+        df_elf.qrcode(**config_01)
+        config_02 = {
+            'input': os.path.join('output', output_filename)
+        }
+        result = df_elf.decode_qrcode(**config_02)
+        self.assertEqual(result, url_data)
+
 
 if __name__ == '__main__':
     unittest.main()

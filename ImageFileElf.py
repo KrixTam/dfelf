@@ -50,7 +50,7 @@ class ImageFileElf(DataFileElf):
                     'output': 'output_filename'
                 },
                 'qrcode': {
-                    'input': 'base64 string',
+                    'input': 'string',
                     'output': 'output_filename',
                     'border': 2,
                     'fill_color': "#000000",

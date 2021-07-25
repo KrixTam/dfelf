@@ -11,6 +11,10 @@
 
 所以数据文件精灵初步设计可以支持以上三类文件的日常处理需要。
 
+## 安装
+
+> pip install dfelf
+
 ## PDFFileElf
 
 PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
@@ -195,6 +199,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 ## 示例
 
 ```python
+from dfelf import CSVFileElf
 df_elf = CSVFileElf()
 config = {
     'base': {

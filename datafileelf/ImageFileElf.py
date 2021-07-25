@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from DataFileElf import DataFileElf
+from .DataFileElf import DataFileElf
 from PIL import Image, ImageDraw, ImageFont
 import logging
 from config import config

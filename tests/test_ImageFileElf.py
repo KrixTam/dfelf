@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from ImageFileElf import ImageFileElf
+from dfelf import ImageFileElf
 
 
 class TestImageFileElf(unittest.TestCase):

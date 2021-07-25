@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from PDFFileElf import PDFFileElf
+from dfelf import PDFFileElf
 
 
 class TestPDFFileElf(unittest.TestCase):

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from DataFileElf import DataFileElf
-from CSVFileElf import CSVFileElf
-from PDFFileElf import PDFFileElf
-from ImageFileElf import ImageFileElf
+from datafileelf.DataFileElf import DataFileElf
+from datafileelf.CSVFileElf import CSVFileElf
+from datafileelf.PDFFileElf import PDFFileElf
+from datafileelf.ImageFileElf import ImageFileElf

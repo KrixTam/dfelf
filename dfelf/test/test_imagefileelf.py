@@ -2,7 +2,8 @@
 
 import unittest
 import os
-from dfelf import ImageFileElf
+from dfelf.imagefileelf import ImageFileElf
+from utils import get_platform
 
 
 class TestImageFileElf(unittest.TestCase):
@@ -57,8 +58,11 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(**watermark)
         result_filename = os.path.join('result', filename)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
-                         df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
+        if get_platform() == 'Windows':
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)),
+                             df_elf.checksum(df_elf.get_filename_with_path(result_filename)))
+        else:
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), '648040d68d7c989b526ba040044efdad')
 
     def test_base64(self):
         df_elf = ImageFileElf()

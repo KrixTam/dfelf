@@ -1,16 +1,14 @@
 # coding: utf-8
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-# print(find_packages('.'))
-
 setup(
     name='dfelf',
-    version='0.0.1',
-    packages=['datafileelf'],
+    version='0.0.2',
+    packages=['dfelf'],
     url='https://github.com/KrixTam/dfelf',
     license='MIT',
     author='Krix Tam',

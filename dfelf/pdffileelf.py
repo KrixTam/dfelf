@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from .DataFileElf import DataFileElf
+from .datafileelf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
 from config import config

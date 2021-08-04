@@ -2,7 +2,8 @@
 
 import unittest
 import os
-from dfelf import PDFFileElf
+from dfelf.pdffileelf import PDFFileElf
+from utils import get_platform
 
 
 class TestPDFFileElf(unittest.TestCase):
@@ -47,8 +48,19 @@ class TestPDFFileElf(unittest.TestCase):
             'output': 'mr.pdf'
         }
         df_elf.image2pdf(**config)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')),
-                         df_elf.checksum(os.path.join('result', 'mr.pdf')))
+        if get_platform()=='Windows':
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')),
+                             df_elf.checksum(os.path.join('result', 'mr.pdf')))
+        else:
+            config_02 = {
+                'input': df_elf.get_output_path('mr.pdf'),
+                'output': 'mr',
+                'format': 'png',
+                'pages': [1, 2]
+            }
+            df_elf.to_image(**config_02)
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_1.png')), '2224c910589813a60ede5e281a13d14b')
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_2.png')), 'bcbd7b22565b4e616103b25a5f05c274')
 
     def test_2image(self):
         df_elf = PDFFileElf()
@@ -61,10 +73,14 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf.to_image(**config)
         filename_01 = config['output'] + '_4.png'
         filename_02 = config['output'] + '_3.png'
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)),
-                         df_elf.checksum(os.path.join('result', filename_01)))
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)),
-                         df_elf.checksum(os.path.join('result', filename_02)))
+        if get_platform() == 'Windows':
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)),
+                             df_elf.checksum(os.path.join('result', filename_01)))
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)),
+                             df_elf.checksum(os.path.join('result', filename_02)))
+        else:
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)), '83da825a636756f03213276f393fcab7')
+            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')
 
 
 if __name__ == '__main__':

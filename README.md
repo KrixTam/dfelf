@@ -15,6 +15,10 @@
 
 > pip install dfelf
 
+在macOS下，如果要pdf2image运行正常，需要安装Poppler
+
+> conda install -c conda-forge poppler
+
 ## PDFFileElf
 
 PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
@@ -200,6 +204,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 
 ```python
 from dfelf import CSVFileElf
+
 df_elf = CSVFileElf()
 config = {
     'base': {

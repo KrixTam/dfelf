@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from dfelf import CSVFileElf
+from dfelf.cvsfileelf import CSVFileElf
 
 
 class TestCSVFileElf(unittest.TestCase):

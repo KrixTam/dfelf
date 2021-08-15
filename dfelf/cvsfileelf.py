@@ -250,11 +250,17 @@ class CSVFileElf(DataFileElf):
         mask = pd.Series(df.duplicated(subset=subset))
         log_filename = 'drop_duplicates' + moment().format('.YYYYMMDD.HHmmss') + '.log'
         filename = self.get_log_path(log_filename)
+        log_filename_pre = 'pre_' + log_filename
+        pre_filename = self.get_log_path(log_filename_pre)
         duplicates = df[mask]
         else_mask = ~ mask
         if not duplicates.empty:
             CSVFileElf.to_csv_with_bom(duplicates, filename)
             logging.warning('存在需要进行去重处理的值')
+            tmp_df = df[df[subset].isin(duplicates[subset])]
+            logging.warning(tmp_df.sort_values(by=[subset]))
+            CSVFileElf.to_csv_with_bom(tmp_df, pre_filename)
+            logging.warning('如下重复值将被去除，详细请查阅文件：\n' + log_filename_pre + '\n' + log_filename)
             logging.warning(duplicates)
         return df[else_mask], log_filename
 
@@ -321,7 +327,8 @@ class CSVFileElf(DataFileElf):
                         pass
                     else:
                         df_tag.drop([col], axis=1, inplace=True)
-                df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_right)
+                df_tag.rename(columns={key_right: key_ori}, inplace=True)
+                df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_ori)
                 for x in range(len(fields)):
                     df_ori[fields[x]].fillna(defaults[x], inplace=True)
             self.to_output_file(df_ori, 'add')

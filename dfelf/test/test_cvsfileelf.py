@@ -16,7 +16,7 @@ class TestCSVFileElf(unittest.TestCase):
         log_file = os.path.join('log', log_filename)
         self.assertEqual(df_elf.checksum(log_file), df_elf.checksum(log_result))
 
-    def test_add(self):
+    def test_add_01(self):
         df_elf = CSVFileElf()
         config = {
             'base': {
@@ -30,6 +30,30 @@ class TestCSVFileElf(unittest.TestCase):
                 {
                     'name': os.path.join('sources', 'df3.csv'),
                     'key': 'key',
+                    'fields': ['new_value'],
+                    'defaults': ['0.0']
+                }
+            ]
+        }
+        df_elf.add(**config)
+        result_filename = os.path.join('sources', 'add.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_add_02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': {
+                'name': os.path.join('sources', 'df1.csv'),
+                'key': 'key'
+            },
+            'output': {
+                'name': 'test_add_02.csv'
+            },
+            'tags': [
+                {
+                    'name': os.path.join('sources', 'df5.csv'),
+                    'key': 'new_key',
                     'fields': ['new_value'],
                     'defaults': ['0.0']
                 }

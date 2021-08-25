@@ -146,6 +146,10 @@ class ImageFileElf(DataFileElf):
             }
         })
 
+    def to_output(self, task_key, **kwargs):
+        if self._output_flag:
+            pass
+
     def to_favicon(self, **kwargs):
         new_kwargs = {
             'favicon': kwargs

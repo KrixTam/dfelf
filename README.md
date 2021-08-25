@@ -34,7 +34,7 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
     'reorganize': {
         'input': 'input_filename',
         'output': 'output_filename',
-        'pages': []
+        'pages': [1]
     },
     'image2pdf': {
         'images': [],
@@ -45,7 +45,7 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
         'output': 'output_filename_prefix',
         'format': 'png',
         'dpi': 200,
-        'pages': []
+        'pages': [1]
     }
 }
 ```

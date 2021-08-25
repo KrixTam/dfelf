@@ -246,6 +246,10 @@ class CSVFileElf(DataFileElf):
             }
         })
 
+    def to_output(self, task_key, **kwargs):
+        if self._output_flag:
+            pass
+
     def drop_duplicates(self, df, subset):
         mask = pd.Series(df.duplicated(subset=subset))
         log_filename = 'drop_duplicates' + moment().format('.YYYYMMDD.HHmmss') + '.log'

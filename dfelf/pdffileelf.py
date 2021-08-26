@@ -116,12 +116,14 @@ class PDFFileElf(DataFileElf):
                         copyfile(src_filename, dis_filename)
             else:
                 if task_key == 'reorganize':
+                    output_filename = self._config[task_key]['output']
+                    ot_filename = self.get_log_path(output_filename)
+                    output_stream = open(ot_filename, "wb")
+                    kwargs['pdf_writer'].write(output_stream)
+                    output_stream.close()
                     if self._output_flag:
-                        output_filename = self._config[task_key]['output']
-                        ot_filename = self.get_filename_with_path(output_filename)
-                        output_stream = open(ot_filename, "wb")
-                        kwargs['pdf_writer'].write(output_stream)
-                        output_stream.close()
+                        output_filename_real = self.get_output_path(output_filename)
+                        copyfile(ot_filename, output_filename_real)
 
     def reorganize(self, **kwargs):
         task_key = 'reorganize'
@@ -143,7 +145,11 @@ class PDFFileElf(DataFileElf):
                     logging.warning('PDF文件"' + input_filename + '"中不存在第' + str(page) + '的内容，请检查PDF原文档的内容正确性或者配置正确性。')
             self.to_output(task_key, pdf_writer=output)
             input_stream.close()
-            return output
+            # 从log目录中生成返回对象
+            output_filename_res = self.get_log_path(self._config[task_key]['output'])
+            input_stream_res = open(output_filename_res, "rb")
+            res = PdfFileReader(input_stream_res)
+            return res
 
     def image2pdf(self, **kwargs):
         task_key = 'image2pdf'
@@ -160,6 +166,7 @@ class PDFFileElf(DataFileElf):
                     image = Image.open(self.get_filename_with_path(image_filenames[i])).convert('RGB')
                     image_list.append(image)
                 self.to_output(task_key, first_image=image_0, append_images=image_list)
+                # 从log目录中生成返回对象
                 output_filename = self.get_log_path(self._config[task_key]['output'])
                 input_stream = open(output_filename, "rb")
                 pdf_file = PdfFileReader(input_stream)
@@ -183,7 +190,12 @@ class PDFFileElf(DataFileElf):
             image_format = self._config[task_key]['format']
             output_pages = self._config[task_key]['pages']
             res = []
-            for page_index in output_pages:
-                output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-                res.append(self.get_output_path(output_filename))
+            if self._output_flag:
+                for page_index in output_pages:
+                    output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
+                    res.append(self.get_output_path(output_filename))
+            else:
+                for page_index in output_pages:
+                    output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
+                    res.append(self.get_log_path(output_filename))
             return res

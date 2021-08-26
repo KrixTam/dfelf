@@ -10,8 +10,8 @@ class TestPDFFileElf(unittest.TestCase):
 
     def test_reorganize(self):
         df_elf = PDFFileElf()
-        output_filename_01 = os.path.join('output', 'dive-into-python3-part.pdf')
-        output_filename_02 = os.path.join('output', 'dive-into-python3-part-02.pdf')
+        output_filename_01 = 'dive-into-python3-part.pdf'
+        output_filename_02 = 'dive-into-python3-part-02.pdf'
         config_01 = {
             'input': os.path.join('sources', 'dive-into-python3.pdf'),
             'output': output_filename_01,
@@ -24,8 +24,8 @@ class TestPDFFileElf(unittest.TestCase):
             'pages': [3, 2]
         }
         df_elf.reorganize(**config_02)
-        self.assertEqual(df_elf.checksum(output_filename_01), 'fd4c80a337f4599435b2ab31383a4b18')
-        self.assertEqual(df_elf.checksum(output_filename_02), '6dedf93bf8afccb5dc2fbd8ea60e6989')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename_01)), 'fd4c80a337f4599435b2ab31383a4b18')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename_02)), '6dedf93bf8afccb5dc2fbd8ea60e6989')
 
     def test_generate_config_file(self):
         df_elf = PDFFileElf()

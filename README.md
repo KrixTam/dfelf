@@ -13,7 +13,7 @@
 
 ## 安装
 
-> pip install dfelf
+> pip install --upgrade dfelf
 
 在macOS下，如果要pdf2image运行正常，需要安装Poppler
 

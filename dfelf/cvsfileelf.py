@@ -3,7 +3,7 @@
 import pandas as pd
 from .datafileelf import DataFileElf
 from moment import moment
-from config import config
+from ni.config import Config
 import logging
 
 
@@ -13,7 +13,7 @@ class CSVFileElf(DataFileElf):
         super().__init__()
 
     def init_config(self):
-        self._config = config({
+        self._config = Config({
             'name': 'CSVFileElf',
             'default': {
                 'add': {

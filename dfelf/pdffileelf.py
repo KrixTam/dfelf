@@ -3,7 +3,7 @@
 from .datafileelf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 import logging
-from config import config
+from ni.config import Config
 from PIL import Image
 from pdf2image import convert_from_bytes
 from io import BytesIO
@@ -16,7 +16,7 @@ class PDFFileElf(DataFileElf):
         super().__init__()
 
     def init_config(self):
-        self._config = config({
+        self._config = Config({
             'name': 'PDFFileElf',
             'default': {
                 'reorganize': {

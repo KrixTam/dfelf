@@ -3,7 +3,7 @@
 from .datafileelf import DataFileElf
 from PIL import Image, ImageDraw, ImageFont
 import logging
-from config import config
+from ni.config import Config
 import base64
 from string import Template
 import os
@@ -17,7 +17,7 @@ class ImageFileElf(DataFileElf):
         super().__init__()
 
     def init_config(self):
-        self._config = config({
+        self._config = Config({
             'name': 'ImageFileElf',
             'default': {
                 'favicon': {

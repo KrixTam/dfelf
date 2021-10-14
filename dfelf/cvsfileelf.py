@@ -1,10 +1,8 @@
-# coding: utf-8
-
 import pandas as pd
-from .datafileelf import DataFileElf
 from moment import moment
 from ni.config import Config
-import logging
+from dfelf import DataFileElf
+from dfelf.commons import logger
 
 
 class CSVFileElf(DataFileElf):
@@ -276,12 +274,10 @@ class CSVFileElf(DataFileElf):
         else_mask = ~ mask
         if not duplicates.empty:
             CSVFileElf.to_csv_with_bom(duplicates, filename)
-            logging.warning('存在需要进行去重处理的值')
             tmp_df = df[df[subset].isin(duplicates[subset])]
-            logging.warning(tmp_df.sort_values(by=[subset]))
+            logger.warning([2000, log_filename_pre, tmp_df.sort_values(by=[subset])])
             CSVFileElf.to_csv_with_bom(tmp_df, pre_filename)
-            logging.warning('如下重复值将被去除，详细请查阅文件：\n' + log_filename_pre + '\n' + log_filename)
-            logging.warning(duplicates)
+            logger.warning([2001, log_filename, duplicates])
         return df[else_mask], log_filename
 
     @staticmethod

@@ -1,8 +1,6 @@
-# coding: utf-8
-
 import unittest
 import os
-from dfelf.cvsfileelf import CSVFileElf
+from dfelf import CSVFileElf
 
 
 class TestCSVFileElf(unittest.TestCase):

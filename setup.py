@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='dfelf',
-    version='0.0.4',
+    version='0.0.5',
     packages=['dfelf'],
     url='https://github.com/KrixTam/dfelf',
     license='MIT',
@@ -28,7 +28,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'pymoment>=0.0.5',
-        'ni-config>=0.0.7',
+        'ni-config>=0.0.9',
         'pandas>=0.25.2',
         'PyPDF2>=1.26.0',
         'Pillow>=5.2.0',

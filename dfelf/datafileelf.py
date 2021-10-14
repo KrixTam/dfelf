@@ -1,9 +1,7 @@
-# coding: utf-8
-
 import os
 import hashlib
-import logging
 from abc import ABCMeta, abstractmethod
+from dfelf.commons import logger
 
 
 class DataFileElf(metaclass=ABCMeta):
@@ -58,7 +56,7 @@ class DataFileElf(metaclass=ABCMeta):
     def is_default(self, task_key):
         res = self._config.is_default(task_key)
         if res:
-            logging.warning('"' + task_key + '"没有设置正确，请设置后重试。')
+            logger.warning([1000, task_key])
         return res
 
     def set_config_by_task_key(self, task_key, **kwargs):

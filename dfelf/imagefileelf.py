@@ -1,14 +1,12 @@
-# coding: utf-8
-
-from .datafileelf import DataFileElf
 from PIL import Image, ImageDraw, ImageFont
-import logging
-from ni.config import Config
 import base64
 from string import Template
 import os
 import qrcode
 import cv2
+from ni.config import Config
+from dfelf import DataFileElf
+from dfelf.commons import logger
 
 
 class ImageFileElf(DataFileElf):
@@ -169,7 +167,6 @@ class ImageFileElf(DataFileElf):
                 for x in icon_sizes:
                     img_resize = img.resize((x, x), Image.ANTIALIAS)
                     output_filename = 'favicon' + str(x) + '.ico'
-                    # img_resize.save(self.get_output_path(output_filename))
                     self.to_output(task_key, img=img_resize, filename=output_filename)
                     res.append(img_resize)
                 return res
@@ -177,7 +174,6 @@ class ImageFileElf(DataFileElf):
                 favicon_size = self._config[task_key]['size']
                 img_resize = img.resize((favicon_size, favicon_size), Image.ANTIALIAS)
                 output_filename = 'favicon' + str(favicon_size) + '.ico'
-                # img_resize.save(self.get_output_path(output_filename))
                 self.to_output(task_key, img=img_resize, filename=output_filename)
                 return img_resize
 
@@ -211,11 +207,10 @@ class ImageFileElf(DataFileElf):
                     img = images[i]
                     loc = (gap, locations[i])
                     ret_img.paste(img, loc)
-                # ret_img.save(self.get_output_path(output_filename))
                 self.to_output(task_key, img=ret_img, filename=output_filename)
                 return ret_img
             else:
-                logging.warning('"splice"中没有正确设置"images"参数，请设置后重试。')
+                logger.warning([3000])
                 return None
 
     def watermark(self, **kwargs):
@@ -239,7 +234,6 @@ class ImageFileElf(DataFileElf):
             draw = ImageDraw.Draw(txt_img)
             draw.text(loc, text, fill=color, font=font_draw)
             img.paste(txt_img, (0, 0), txt_img)
-            # img.save(self.get_output_path(output_filename))
             self.to_output(task_key, img=img, filename=output_filename)
             return img
 
@@ -272,7 +266,7 @@ class ImageFileElf(DataFileElf):
             detector = cv2.QRCodeDetector()
             data, vertices_array, binary_qrcode = detector.detectAndDecode(image)
             if vertices_array is None:
-                logging.warning("图片中未能解析到二维码。")
+                logger.warning([3001])
                 return None
             else:
                 print(data)

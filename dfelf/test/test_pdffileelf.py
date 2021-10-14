@@ -1,9 +1,7 @@
-# coding: utf-8
-
 import unittest
 import os
-from dfelf.pdffileelf import PDFFileElf
 from utils import get_platform
+from dfelf import PDFFileElf
 
 
 class TestPDFFileElf(unittest.TestCase):

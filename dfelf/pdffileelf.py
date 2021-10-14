@@ -1,13 +1,11 @@
-# coding: utf-8
-
-from .datafileelf import DataFileElf
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
-import logging
 from ni.config import Config
 from PIL import Image
 from pdf2image import convert_from_bytes
 from io import BytesIO
 from shutil import copyfile
+from dfelf import DataFileElf
+from dfelf.commons import logger
 
 
 class PDFFileElf(DataFileElf):
@@ -142,7 +140,7 @@ class PDFFileElf(DataFileElf):
                 if page in ori_pages:
                     output.addPage(pdf_file.getPage(page - 1))
                 else:
-                    logging.warning('PDF文件"' + input_filename + '"中不存在第' + str(page) + '的内容，请检查PDF原文档的内容正确性或者配置正确性。')
+                    logger.warning([4000, input_filename, page])
             self.to_output(task_key, pdf_writer=output)
             input_stream.close()
             # 从log目录中生成返回对象
@@ -172,7 +170,7 @@ class PDFFileElf(DataFileElf):
                 pdf_file = PdfFileReader(input_stream)
                 return pdf_file
             else:
-                logging.warning('"from_images"没有设置，请设置后重试。')
+                logger.warning([4001])
                 return None
 
     def to_image(self, **kwargs):

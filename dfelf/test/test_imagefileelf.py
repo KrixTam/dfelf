@@ -1,9 +1,7 @@
-# coding: utf-8
-
 import unittest
 import os
-from dfelf.imagefileelf import ImageFileElf
 from utils import get_platform
+from dfelf import ImageFileElf
 
 
 class TestImageFileElf(unittest.TestCase):

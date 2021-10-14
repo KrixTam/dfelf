@@ -1,9 +1,9 @@
-from PyPDF2.pdf import PdfFileWriter, PdfFileReader
-from ni.config import Config
-from PIL import Image
-from pdf2image import convert_from_bytes
 from io import BytesIO
+from PIL import Image
 from shutil import copyfile
+from PyPDF2.pdf import PdfFileWriter, PdfFileReader
+from pdf2image import convert_from_bytes
+from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger
 

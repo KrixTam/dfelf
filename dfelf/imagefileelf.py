@@ -1,9 +1,9 @@
-from PIL import Image, ImageDraw, ImageFont
-import base64
-from string import Template
 import os
-import qrcode
 import cv2
+import base64
+import qrcode
+from string import Template
+from PIL import Image, ImageDraw, ImageFont
 from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger

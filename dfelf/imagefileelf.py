@@ -269,7 +269,7 @@ class ImageFileElf(DataFileElf):
                 logger.warning([3001])
                 return None
             else:
-                print(data)
+                logger.info([3002, data])
                 return data
 
     def to_base64(self, **kwargs):
@@ -284,7 +284,7 @@ class ImageFileElf(DataFileElf):
                 encoded = base64.b64encode(fh.read()).decode('ascii')
                 if self._config[task_key]['css_format']:
                     encoded = Template('"data:image/${extension};base64,${base64}"').substitute(extension=file_extension, base64=encoded)
-                print(encoded)
+                logger.info([3003, encoded])
                 return encoded, file_extension
 
     def from_base64(self, **kwargs):

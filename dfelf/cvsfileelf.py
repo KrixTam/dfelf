@@ -491,4 +491,4 @@ class CSVFileElf(DataFileElf):
                     res.append(tmp_df)
                 return res
             else:
-                raise KeyError('"split"中的"key"不存在，请检查数据文件"' + input_filename + '"是否存在该字段')
+                raise KeyError(logger.error([2002, input_filename]))

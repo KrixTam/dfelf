@@ -1,7 +1,9 @@
 import os
 import unittest
-from utils import get_platform
+from dfelf.test.utils import get_platform
 from dfelf import PDFFileElf
+
+cwd = os.path.abspath(os.path.dirname(__file__))
 
 
 class TestPDFFileElf(unittest.TestCase):
@@ -11,13 +13,13 @@ class TestPDFFileElf(unittest.TestCase):
         output_filename_01 = 'dive-into-python3-part.pdf'
         output_filename_02 = 'dive-into-python3-part-02.pdf'
         config_01 = {
-            'input': os.path.join('sources', 'dive-into-python3.pdf'),
+            'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
             'output': output_filename_01,
             'pages': [2, 3]
         }
         df_elf.reorganize(**config_01)
         config_02 = {
-            'input': os.path.join('sources', 'dive-into-python3.pdf'),
+            'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
             'output': output_filename_02,
             'pages': [3, 2]
         }
@@ -27,7 +29,7 @@ class TestPDFFileElf(unittest.TestCase):
 
     def test_generate_config_file(self):
         df_elf = PDFFileElf()
-        default_cfg_file = os.path.join('sources', 'PDFFileElf_default.cfg')
+        default_cfg_file = os.path.join(cwd, 'sources', 'PDFFileElf_default.cfg')
         output_filename_01 = os.path.join('output', 'PDFFileElf_default.cfg')
         output_filename_02 = os.path.join('output', 'PDFFileElf.cfg')
         df_elf.generate_config_file(output_filename_01)
@@ -42,13 +44,13 @@ class TestPDFFileElf(unittest.TestCase):
     def test_image2pdf(self):
         df_elf = PDFFileElf()
         config = {
-            'images': [os.path.join('sources', '01.png'), os.path.join('sources', '02.png')],
+            'images': [os.path.join(cwd, 'sources', '01.png'), os.path.join(cwd, 'sources', '02.png')],
             'output': 'mr.pdf'
         }
         df_elf.image2pdf(**config)
         if get_platform()=='Windows':
             self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr.pdf')),
-                             df_elf.checksum(os.path.join('result', 'mr.pdf')))
+                             df_elf.checksum(os.path.join(cwd, 'result', 'mr.pdf')))
         else:
             config_02 = {
                 'input': df_elf.get_output_path('mr.pdf'),
@@ -63,7 +65,7 @@ class TestPDFFileElf(unittest.TestCase):
     def test_2image(self):
         df_elf = PDFFileElf()
         config = {
-            'input': os.path.join('sources', 'dive-into-python3.pdf'),
+            'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
             'output': 'dp',
             'format': 'png',
             'pages': [4, 3]
@@ -73,9 +75,9 @@ class TestPDFFileElf(unittest.TestCase):
         filename_02 = config['output'] + '_3.png'
         if get_platform() == 'Windows':
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)),
-                             df_elf.checksum(os.path.join('result', filename_01)))
+                             df_elf.checksum(os.path.join(cwd, 'result', filename_01)))
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)),
-                             df_elf.checksum(os.path.join('result', filename_02)))
+                             df_elf.checksum(os.path.join(cwd, 'result', filename_02)))
         else:
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)), '83da825a636756f03213276f393fcab7')
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')

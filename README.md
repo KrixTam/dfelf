@@ -153,6 +153,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 * **decode_qrcode**：将*input*的二维码图片解析成字符串，并返回；对应的配置设定为*dqrcode*。
 * **to_base64**：将*input*的图片转化为base64字符串，并返回；对应的配置设定为*2base64*。
 * **from_base64**：将*input*的base64字符串转化为图片；对应的配置设定为*base64*。
+* **resize**：将*input*的图片调整尺寸后输出到*output*；对应的配置设定为*resize*。
 
 配置文件设定如下：
 
@@ -197,6 +198,14 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
     'dqrcode': {
         'input': 'input_filename'
     },
+    'resize': {
+        'input': 'input_filename',
+        'output': 'output_filename',
+        'width': 28,
+        'height': 28,
+        'quality': 100,
+        'dpi': 1200
+    }
 }
 ```
 

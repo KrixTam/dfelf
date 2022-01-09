@@ -57,6 +57,14 @@ class ImageFileElf(DataFileElf):
                 'dqrcode': {
                     'input': 'input_filename'
                 },
+                'resize': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'width': 28,
+                    'height': 28,
+                    'quality': 100,
+                    'dpi': 1200
+                }
             },
             'schema': {
                 'type': 'object',
@@ -139,6 +147,27 @@ class ImageFileElf(DataFileElf):
                         'properties': {
                             'input': {'type': 'string'}
                         }
+                    },
+                    'resize': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'width': {
+                                'type': 'integer',
+                                'minimum': 1
+                            },
+                            'height': {
+                                'type': 'integer',
+                                'minimum': 1
+                            },
+                            'quality': {
+                                'type': 'integer',
+                                'minimum': 1,
+                                'maximum': 100
+                            },
+                            'dpi': {'type': 'integer'}
+                        }
                     }
                 }
             }
@@ -151,7 +180,10 @@ class ImageFileElf(DataFileElf):
                 with open(self.get_output_path(output_filename), "wb") as fh:
                     fh.write(kwargs['content'])
             else:
-                kwargs['img'].save(self.get_output_path(kwargs['filename']))
+                if task_key == 'resize':
+                    kwargs['img'].save(self.get_output_path(kwargs['filename']), quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
+                else:
+                    kwargs['img'].save(self.get_output_path(kwargs['filename']))
 
     def to_favicon(self, **kwargs):
         task_key = 'favicon'
@@ -297,3 +329,21 @@ class ImageFileElf(DataFileElf):
             res = base64.b64decode(input_string)
             self.to_output(task_key, content=res)
             return res
+
+    def resize(self, **kwargs):
+        task_key = 'resize'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if self.is_default(task_key):
+            return None
+        else:
+            input_filename = self._config[task_key]['input']
+            output_filename = self._config[task_key]['output']
+            width = self._config[task_key]['width']
+            height = self._config[task_key]['height']
+            quality = self._config[task_key]['quality']
+            dpi = self._config[task_key]['dpi']
+            img_ori = Image.open(input_filename)
+            img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
+            # img_resize.save(output_filename, quality=quality, dpi=(dpi, dpi))
+            self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
+            return img_resize

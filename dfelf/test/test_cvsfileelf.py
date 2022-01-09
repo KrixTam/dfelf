@@ -39,6 +39,17 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'sources', 'add.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+        df_elf_01 = CSVFileElf(output_flag=False)
+        df_elf_01.add(**config)
+        dist_filename_01 = df_elf_01.get_log_path(config['output']['name'])
+        self.assertEqual(df_elf_01.checksum(result_filename), df_elf_01.checksum(dist_filename_01))
+        config_01 = config.copy()
+        config_01['output']['name'] = 'test_add_bom.csv'
+        config_01['output']['BOM'] = True
+        df_elf.add(**config_01)
+        result_filename_01 = os.path.join(cwd, 'result', 'test_add_bom.csv')
+        dist_filename_02 = df_elf.get_output_path(config_01['output']['name'])
+        self.assertEqual(df_elf.checksum(dist_filename_02), df_elf.checksum(result_filename_01))
 
     def test_add_02(self):
         df_elf = CSVFileElf()
@@ -54,6 +65,30 @@ class TestCSVFileElf(unittest.TestCase):
                 {
                     'name': os.path.join(cwd, 'sources', 'df5.csv'),
                     'key': 'new_key',
+                    'fields': ['new_value'],
+                    'defaults': ['0.0']
+                }
+            ]
+        }
+        df_elf.add(**config)
+        result_filename = os.path.join(cwd, 'sources', 'add.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_add_03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': {
+                'name': os.path.join(cwd, 'sources', 'df1.csv'),
+                'key': 'key'
+            },
+            'output': {
+                'name': 'test_add_03.csv'
+            },
+            'tags': [
+                {
+                    'name': os.path.join(cwd, 'sources', 'df6.csv'),
+                    'key': 'key',
                     'fields': ['new_value'],
                     'defaults': ['0.0']
                 }
@@ -339,12 +374,16 @@ class TestCSVFileElf(unittest.TestCase):
             'key': 'B'
         }
         df_elf.split(**config)
+        df_elf_01 = CSVFileElf(output_flag=False)
+        df_elf_01.split(**config)
         filenames = ['B1', 'B2', 'B3', 'B4']
         for filename in filenames:
             real_filename = config['output']['prefix'] + '_' + filename + '.csv'
             result_filename = os.path.join(cwd, 'result', 'split', real_filename)
             dist_filename = df_elf.get_output_path(real_filename)
+            dist_filename_01 = df_elf_01.get_log_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+            self.assertEqual(df_elf_01.checksum(result_filename), df_elf_01.checksum(dist_filename_01))
 
     def test_split_02(self):
         df_elf = CSVFileElf()
@@ -363,6 +402,19 @@ class TestCSVFileElf(unittest.TestCase):
             result_filename = os.path.join(cwd, 'result', 'split', real_filename)
             dist_filename = df_elf.get_output_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_split_03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', 'products_p3.csv'),
+            'output': {
+                'prefix': 'split02',
+                'non-numeric': ['E', 'D']
+            },
+            'key': 'Z'
+        }
+        with self.assertRaises(KeyError):
+            df_elf.split(**config)
 
     def test_filter_n01(self):
         df_elf = CSVFileElf()
@@ -626,6 +678,15 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'result', 'join.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_default(self):
+        df_elf = CSVFileElf()
+        config = {}
+        self.assertEqual(None, df_elf.add(**config))
+        self.assertEqual(None, df_elf.join(**config))
+        self.assertEqual(None, df_elf.exclude(**config))
+        self.assertEqual(None, df_elf.filter(**config))
+        self.assertEqual(None, df_elf.split(**config))
 
 
 if __name__ == '__main__':

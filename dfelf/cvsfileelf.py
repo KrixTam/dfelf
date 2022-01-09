@@ -7,8 +7,8 @@ from dfelf.commons import logger
 
 class CSVFileElf(DataFileElf):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, output_dir=None, output_flag=True):
+        super().__init__(output_dir, output_flag)
 
     def init_config(self):
         self._config = Config({
@@ -258,11 +258,14 @@ class CSVFileElf(DataFileElf):
             bom = self._config[task_key]['output']['BOM']
             CSVFileElf.to_csv(kwargs['df'], output_filename, bom, non_numeric)
         else:
+            output_filename = self.get_output_path(self._config[task_key]['output']['name'])
             if self._output_flag:
-                output_filename = self.get_output_path(self._config[task_key]['output']['name'])
-                bom = self._config[task_key]['output']['BOM']
-                nn = self._config[task_key]['output']['non-numeric']
-                CSVFileElf.to_csv(kwargs['df'], output_filename, bom, nn)
+                pass
+            else:
+                output_filename = self.get_log_path(self._config[task_key]['output']['name'])
+            bom = self._config[task_key]['output']['BOM']
+            nn = self._config[task_key]['output']['non-numeric']
+            CSVFileElf.to_csv(kwargs['df'], output_filename, bom, nn)
 
     def drop_duplicates(self, df, subset):
         mask = pd.Series(df.duplicated(subset=subset))
@@ -491,4 +494,4 @@ class CSVFileElf(DataFileElf):
                     res.append(tmp_df)
                 return res
             else:
-                raise KeyError(logger.error([2002, input_filename]))
+                raise KeyError(logger.error([2002, input_filename, key_name]))

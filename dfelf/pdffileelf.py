@@ -10,8 +10,8 @@ from dfelf.commons import logger
 
 class PDFFileElf(DataFileElf):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, output_dir=None, output_flag=True):
+        super().__init__(output_dir, output_flag)
 
     def init_config(self):
         self._config = Config({

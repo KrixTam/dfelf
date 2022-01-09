@@ -11,8 +11,8 @@ from dfelf.commons import logger
 
 class ImageFileElf(DataFileElf):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, output_dir=None, output_flag=True):
+        super().__init__(output_dir, output_flag)
 
     def init_config(self):
         self._config = Config({
@@ -174,16 +174,25 @@ class ImageFileElf(DataFileElf):
         })
 
     def to_output(self, task_key, **kwargs):
-        if self._output_flag:
-            if task_key == 'base64':
-                output_filename = self._config[task_key]['output']
-                with open(self.get_output_path(output_filename), "wb") as fh:
-                    fh.write(kwargs['content'])
+        if task_key == 'base64':
+            output_filename = self.get_output_path(self._config[task_key]['output'])
+
+            if self._output_flag:
+                pass
             else:
-                if task_key == 'resize':
-                    kwargs['img'].save(self.get_output_path(kwargs['filename']), quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
-                else:
-                    kwargs['img'].save(self.get_output_path(kwargs['filename']))
+                output_filename = self.get_log_path(self._config[task_key]['output'])
+            with open(output_filename, "wb") as fh:
+                fh.write(kwargs['content'])
+        else:
+            output_filename = self.get_output_path(kwargs['filename'])
+            if self._output_flag:
+                pass
+            else:
+                output_filename = self.get_log_path(kwargs['filename'])
+            if task_key == 'resize':
+                kwargs['img'].save(output_filename, quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
+            else:
+                kwargs['img'].save(output_filename)
 
     def to_favicon(self, **kwargs):
         task_key = 'favicon'

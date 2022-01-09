@@ -22,13 +22,13 @@ class DataFileElf(metaclass=ABCMeta):
     def activate_output(self):
         self._output_flag = True
 
-    def set_output(self, output_dir=None):
+    def set_output(self, output_dir):
         if output_dir is None:
             self._output_path = self.get_filename_with_path('output')
         else:
             self._output_path = self.get_filename_with_path(output_dir)
-        if not os.path.exists(self._output_path):
-            os.makedirs(self._output_path)
+            if not os.path.exists(self._output_path):
+                os.makedirs(self._output_path)
 
     def init_dir(self):
         if not os.path.exists(self._log_path):
@@ -47,11 +47,11 @@ class DataFileElf(metaclass=ABCMeta):
 
     @abstractmethod
     def init_config(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def to_output(self, task_key, **kwargs):
-        pass
+        pass  # pragma: no cover
 
     def is_default(self, task_key):
         res = self._config.is_default(task_key)

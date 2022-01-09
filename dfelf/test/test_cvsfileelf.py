@@ -1,4 +1,5 @@
 import os
+import json
 import unittest
 from dfelf import CSVFileElf
 
@@ -39,7 +40,8 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'sources', 'add.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
-        df_elf_01 = CSVFileElf(output_flag=False)
+        df_elf_01 = CSVFileElf()
+        df_elf_01.shutdown_output()
         df_elf_01.add(**config)
         dist_filename_01 = df_elf_01.get_log_path(config['output']['name'])
         self.assertEqual(df_elf_01.checksum(result_filename), df_elf_01.checksum(dist_filename_01))
@@ -76,7 +78,8 @@ class TestCSVFileElf(unittest.TestCase):
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
     def test_add_03(self):
-        df_elf = CSVFileElf()
+        df_elf = CSVFileElf(output_flag=False)
+        df_elf.activate_output()
         config = {
             'base': {
                 'name': os.path.join(cwd, 'sources', 'df1.csv'),
@@ -97,6 +100,36 @@ class TestCSVFileElf(unittest.TestCase):
         df_elf.add(**config)
         result_filename = os.path.join(cwd, 'sources', 'add.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_add_04(self):
+        df_elf = CSVFileElf()
+        config = {
+            'add': {
+                'base': {
+                    'name': os.path.join(cwd, 'sources', 'df1.csv'),
+                    'key': 'key'
+                },
+                'output': {
+                    'name': 'test_add_04.csv'
+                },
+                'tags': [
+                    {
+                        'name': os.path.join(cwd, 'sources', 'df3.csv'),
+                        'key': 'key',
+                        'fields': ['new_value'],
+                        'defaults': ['0.0']
+                    }
+                ]
+            }
+        }
+        config_file = df_elf.get_output_path('test_config.cfg')
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=4)
+        df_elf.load_config(config_file)
+        df_elf.add()
+        result_filename = os.path.join(cwd, 'sources', 'add.csv')
+        dist_filename = df_elf.get_output_path(config['add']['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
     def test_add_duplicates(self):
@@ -687,6 +720,12 @@ class TestCSVFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.exclude(**config))
         self.assertEqual(None, df_elf.filter(**config))
         self.assertEqual(None, df_elf.split(**config))
+
+    def test_set_output(self):
+        output_dir = os.path.join('output', 'test')
+        self.assertFalse(os.path.exists(output_dir))
+        df_elf = CSVFileElf(output_dir=output_dir)
+        self.assertTrue(os.path.exists(output_dir))
 
 
 if __name__ == '__main__':

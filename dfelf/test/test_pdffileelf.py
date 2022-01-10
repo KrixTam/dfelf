@@ -15,7 +15,7 @@ class TestPDFFileElf(unittest.TestCase):
         config_01 = {
             'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
             'output': output_filename_01,
-            'pages': [2, 3]
+            'pages': [2, 3, 499]
         }
         df_elf.reorganize(**config_01)
         config_02 = {
@@ -41,7 +41,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(c['reorganize']['output'], 'cde.pdf')
         self.assertEqual(c['reorganize']['pages'], [1, 3, 2])
 
-    def test_image2pdf(self):
+    def test_image2pdf_01(self):
         df_elf = PDFFileElf()
         config = {
             'images': [os.path.join(cwd, 'sources', '01.png'), os.path.join(cwd, 'sources', '02.png')],
@@ -62,7 +62,15 @@ class TestPDFFileElf(unittest.TestCase):
             self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_1.png')), '2224c910589813a60ede5e281a13d14b')
             self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_2.png')), 'bcbd7b22565b4e616103b25a5f05c274')
 
-    def test_2image(self):
+    def test_image2pdf_02(self):
+        df_elf = PDFFileElf()
+        config = {
+            'images': [],
+            'output': 'mr.pdf'
+        }
+        self.assertEqual(None, df_elf.image2pdf(**config))
+
+    def test_2image_01(self):
         df_elf = PDFFileElf()
         config = {
             'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
@@ -81,6 +89,33 @@ class TestPDFFileElf(unittest.TestCase):
         else:
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)), '83da825a636756f03213276f393fcab7')
             self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')
+
+    def test_2image_02(self):
+        df_elf = PDFFileElf(output_flag=False)
+        config = {
+            'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
+            'output': 'dp',
+            'format': 'png',
+            'pages': [4, 3]
+        }
+        df_elf.to_image(**config)
+        filename_01 = config['output'] + '_4.png'
+        filename_02 = config['output'] + '_3.png'
+        if get_platform() == 'Windows':
+            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_01)),
+                             df_elf.checksum(os.path.join(cwd, 'result', filename_01)))
+            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_02)),
+                             df_elf.checksum(os.path.join(cwd, 'result', filename_02)))
+        else:
+            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_01)), '83da825a636756f03213276f393fcab7')
+            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')
+
+    def test_default(self):
+        df_elf = PDFFileElf()
+        config = {}
+        self.assertEqual(None, df_elf.reorganize(**config))
+        self.assertEqual(None, df_elf.image2pdf(**config))
+        self.assertEqual(None, df_elf.to_image(**config))
 
 
 if __name__ == '__main__':

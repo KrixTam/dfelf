@@ -316,13 +316,15 @@ class CSVFileElf(DataFileElf):
         content = pd.read_csv(filename, dtype=str)
         return content
 
-    def add(self, **kwargs):
+    def add(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'add'
         self.set_config_by_task_key(task_key, **kwargs)
         if self.is_default(task_key):
             return None
         else:
-            df_ori = self.read_content(self._config[task_key]['base']['name'])
+            df_ori = input_obj
+            if df_ori is None:
+                df_ori = self.read_content(self._config[task_key]['base']['name'])
             key_ori = self._config[task_key]['base']['key']
             if self._config[task_key]['base']['drop_duplicates']:
                 df_ori = self.drop_duplicates(df_ori, key_ori)[0]
@@ -345,14 +347,15 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
             return df_ori
 
-    def join(self, **kwargs):
+    def join(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'join'
         self.set_config_by_task_key(task_key, **kwargs)
         if self.is_default(task_key):
             return None
         else:
-            base_filename = self._config[task_key]['base']
-            df_ori = self.read_content(base_filename)
+            df_ori = input_obj
+            if df_ori is None:
+                df_ori = self.read_content(self._config[task_key]['base'])
             files = self._config[task_key]['files']
             for file in files:
                 df = self.read_content(file['name'])
@@ -363,14 +366,15 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
             return df_ori
 
-    def exclude(self, **kwargs):
+    def exclude(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'exclude'
         self.set_config_by_task_key(task_key, **kwargs)
         if self.is_default(task_key):
             return None
         else:
-            input_filename = self._config[task_key]['input']
-            df_ori = self.read_content(input_filename)
+            df_ori = input_obj
+            if df_ori is None:
+                df_ori = self.read_content(self._config[task_key]['input'])
             exclusion = self._config[task_key]['exclusion']
             for e in exclusion:
                 key = e['key']
@@ -419,14 +423,15 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
             return df_ori
 
-    def filter(self, **kwargs):
+    def filter(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'filter'
         self.set_config_by_task_key(task_key, **kwargs)
         if self.is_default(task_key):
             return None
         else:
-            input_filename = self._config[task_key]['input']
-            df_ori = self.read_content(input_filename)
+            df_ori = input_obj
+            if df_ori is None:
+                df_ori = self.read_content(self._config[task_key]['input'])
             filters = self._config[task_key]['filters']
             for f in filters:
                 key = f['key']
@@ -475,14 +480,16 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
             return df_ori
 
-    def split(self, **kwargs):
+    def split(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'split'
         self.set_config_by_task_key(task_key, **kwargs)
         if self.is_default(task_key):
             return None
         else:
             input_filename = self._config[task_key]['input']
-            df_ori = self.read_content(input_filename)
+            df_ori = input_obj
+            if df_ori is None:
+                df_ori = self.read_content(input_filename)
             key_name = self._config[task_key]['key']
             columns = df_ori.columns
             res = []

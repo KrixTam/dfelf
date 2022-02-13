@@ -212,6 +212,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 ## 示例
 
 ```python
+import os
 from dfelf import CSVFileElf
 
 df_elf = CSVFileElf()
@@ -233,4 +234,32 @@ config = {
     ]
 }
 df_elf.add(**config)
+```
+
+下面的代码在v0.1.0版本开始，可以获得与上面代码同样的结果：
+
+```python
+import os
+import pandas as pd
+from dfelf import CSVFileElf
+
+df_elf = CSVFileElf()
+config = {
+    'base': {
+        'key': 'key'
+    },
+    'output': {
+        'name': 'test_add.csv'
+    },
+    'tags': [
+        {
+            'name': os.path.join('sources', 'df3.csv'),
+            'key': 'key',
+            'fields': ['new_value'],
+            'defaults': ['0.0']
+        }
+    ]
+}
+input_df = pd.read_csv(os.path.join('sources', 'df1.csv'), dtype=str)
+df_elf.add(input_df, **config)
 ```

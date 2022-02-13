@@ -13,7 +13,7 @@ class TestCSVFileElf(unittest.TestCase):
         input_filename = os.path.join(cwd, 'sources', 'ori_data.csv')
         log_result = os.path.join(cwd, 'result', 'drop_duplicates.ori.log')
         df_elf = CSVFileElf()
-        df = df_elf.read_content(input_filename)
+        df = CSVFileElf.read_content(input_filename)
         log_filename = df_elf.drop_duplicates(df, 'brand')[1]
         log_file = os.path.join('log', log_filename)
         self.assertEqual(df_elf.checksum(log_file), df_elf.checksum(log_result))

@@ -311,9 +311,9 @@ class CSVFileElf(DataFileElf):
         df_export = CSVFileElf.tidy(df, nn)
         df_export.to_csv(output_filename, index=False, encoding='utf-8-sig')
 
-    def read_content(self, cvs_filename=None):
-        filename = self.get_filename_with_path(cvs_filename)
-        content = pd.read_csv(filename, dtype=str)
+    @staticmethod
+    def read_content(cvs_filename):
+        content = pd.read_csv(cvs_filename, dtype=str)
         return content
 
     def add(self, input_obj: pd.DataFrame = None, **kwargs):
@@ -323,14 +323,14 @@ class CSVFileElf(DataFileElf):
             return None
         else:
             if input_obj is None:
-                df_ori = self.read_content(self._config[task_key]['base']['name'])
+                df_ori = CSVFileElf.read_content(self._config[task_key]['base']['name'])
             else:
                 df_ori = input_obj.copy()
             key_ori = self._config[task_key]['base']['key']
             if self._config[task_key]['base']['drop_duplicates']:
                 df_ori = self.drop_duplicates(df_ori, key_ori)[0]
             for tag in self._config[task_key]['tags']:
-                df_tag = self.read_content(tag['name'])
+                df_tag = CSVFileElf.read_content(tag['name'])
                 key_right = tag['key']
                 df_tag = self.drop_duplicates(df_tag, key_right)[0]
                 fields = tag['fields']
@@ -355,12 +355,12 @@ class CSVFileElf(DataFileElf):
             return None
         else:
             if input_obj is None:
-                df_ori = self.read_content(self._config[task_key]['base'])
+                df_ori = CSVFileElf.read_content(self._config[task_key]['base'])
             else:
                 df_ori = input_obj.copy()
             files = self._config[task_key]['files']
             for file in files:
-                df = self.read_content(file['name'])
+                df = CSVFileElf.read_content(file['name'])
                 if len(file['mappings']) > 0:
                     for key, value in file['mappings'].items():
                         df.rename(columns={key: value}, inplace=True)
@@ -375,7 +375,7 @@ class CSVFileElf(DataFileElf):
             return None
         else:
             if input_obj is None:
-                df_ori = self.read_content(self._config[task_key]['input'])
+                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
             else:
                 df_ori = input_obj.copy()
             exclusion = self._config[task_key]['exclusion']
@@ -433,7 +433,7 @@ class CSVFileElf(DataFileElf):
             return None
         else:
             if input_obj is None:
-                df_ori = self.read_content(self._config[task_key]['input'])
+                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
             else:
                 df_ori = input_obj.copy()
             filters = self._config[task_key]['filters']
@@ -492,7 +492,7 @@ class CSVFileElf(DataFileElf):
         else:
             input_filename = self._config[task_key]['input']
             if input_obj is None:
-                df_ori = self.read_content(input_filename)
+                df_ori = CSVFileElf.read_content(input_filename)
             else:
                 df_ori = input_obj.copy()
             key_name = self._config[task_key]['key']

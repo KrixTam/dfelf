@@ -1,6 +1,5 @@
 import os
 import unittest
-
 import cv2
 from PIL import Image
 from dfelf.test.utils import get_platform

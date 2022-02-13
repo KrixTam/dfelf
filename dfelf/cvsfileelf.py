@@ -322,9 +322,10 @@ class CSVFileElf(DataFileElf):
         if self.is_default(task_key):
             return None
         else:
-            df_ori = input_obj
-            if df_ori is None:
+            if input_obj is None:
                 df_ori = self.read_content(self._config[task_key]['base']['name'])
+            else:
+                df_ori = input_obj.copy()
             key_ori = self._config[task_key]['base']['key']
             if self._config[task_key]['base']['drop_duplicates']:
                 df_ori = self.drop_duplicates(df_ori, key_ori)[0]
@@ -353,9 +354,10 @@ class CSVFileElf(DataFileElf):
         if self.is_default(task_key):
             return None
         else:
-            df_ori = input_obj
-            if df_ori is None:
+            if input_obj is None:
                 df_ori = self.read_content(self._config[task_key]['base'])
+            else:
+                df_ori = input_obj.copy()
             files = self._config[task_key]['files']
             for file in files:
                 df = self.read_content(file['name'])
@@ -372,9 +374,10 @@ class CSVFileElf(DataFileElf):
         if self.is_default(task_key):
             return None
         else:
-            df_ori = input_obj
-            if df_ori is None:
+            if input_obj is None:
                 df_ori = self.read_content(self._config[task_key]['input'])
+            else:
+                df_ori = input_obj.copy()
             exclusion = self._config[task_key]['exclusion']
             for e in exclusion:
                 key = e['key']
@@ -429,9 +432,10 @@ class CSVFileElf(DataFileElf):
         if self.is_default(task_key):
             return None
         else:
-            df_ori = input_obj
-            if df_ori is None:
+            if input_obj is None:
                 df_ori = self.read_content(self._config[task_key]['input'])
+            else:
+                df_ori = input_obj.copy()
             filters = self._config[task_key]['filters']
             for f in filters:
                 key = f['key']
@@ -487,9 +491,10 @@ class CSVFileElf(DataFileElf):
             return None
         else:
             input_filename = self._config[task_key]['input']
-            df_ori = input_obj
-            if df_ori is None:
+            if input_obj is None:
                 df_ori = self.read_content(input_filename)
+            else:
+                df_ori = input_obj.copy()
             key_name = self._config[task_key]['key']
             columns = df_ori.columns
             res = []

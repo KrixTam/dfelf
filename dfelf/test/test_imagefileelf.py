@@ -234,6 +234,27 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(img_01.size, img.size)
         self.assertEqual(df_elf.checksum(df_elf_01.get_log_path(output_filename)), df_elf_01.checksum(result_file))
 
+    def test_resize_03(self):
+        df_elf = ImageFileElf()
+        input_filename = os.path.join(cwd, 'sources', 'icon.png')
+        output_filename = 'test_resize_03.png'
+        config = {
+            'output': output_filename,
+            'scale': True,
+            'width': 16,
+            'height': 16,
+            'dpi': 3000
+        }
+        input_img = Image.open(input_filename)
+        img = df_elf.resize(input_img, **config)
+        self.assertEqual((28, 28), img.size)
+        result_file = os.path.join(cwd, 'result', 'test_resize.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+        df_elf_01 = ImageFileElf(output_flag=False)
+        img_01 = df_elf_01.resize(input_img, **config)
+        self.assertEqual(img_01.size, img.size)
+        self.assertEqual(df_elf.checksum(df_elf_01.get_log_path(output_filename)), df_elf_01.checksum(result_file))
+
     def test_default(self):
         df_elf = ImageFileElf()
         config = {}

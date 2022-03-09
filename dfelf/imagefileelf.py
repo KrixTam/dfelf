@@ -10,6 +10,7 @@ from dfelf.commons import logger
 import numpy as np
 from moment import moment
 import imghdr
+import math
 
 
 class ImageFileElf(DataFileElf):
@@ -63,6 +64,7 @@ class ImageFileElf(DataFileElf):
                 'resize': {
                     'input': 'input_filename',
                     'output': 'output_filename',
+                    'scale': False,
                     'width': 28,
                     'height': 28,
                     'quality': 100,
@@ -156,6 +158,7 @@ class ImageFileElf(DataFileElf):
                         'properties': {
                             'input': {'type': 'string'},
                             'output': {'type': 'string'},
+                            'scale': {"type": "boolean"},
                             'width': {
                                 'type': 'integer',
                                 'minimum': 1
@@ -410,10 +413,15 @@ class ImageFileElf(DataFileElf):
             else:
                 img_ori = input_obj.copy()
             output_filename = self._config[task_key]['output']
-            width = self._config[task_key]['width']
-            height = self._config[task_key]['height']
+            width, height = img_ori.size
             quality = self._config[task_key]['quality']
             dpi = self._config[task_key]['dpi']
+            if self._config[task_key]['scale']:
+                width = math.floor(width * self._config[task_key]['width'] / 100.0)
+                height = math.floor(height * self._config[task_key]['height'] / 100.0)
+            else:
+                width = self._config[task_key]['width']
+                height = self._config[task_key]['height']
             img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
             self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
             return img_resize

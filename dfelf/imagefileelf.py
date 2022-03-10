@@ -11,6 +11,13 @@ import numpy as np
 from moment import moment
 import imghdr
 import math
+try:
+    import importlib.resources as pkg_resources
+except ImportError:  # pragma: no cover
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources  # pragma: no cover
+from dfelf.res import Noto_Sans_SC
+DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
 
 
 class ImageFileElf(DataFileElf):
@@ -37,7 +44,7 @@ class ImageFileElf(DataFileElf):
                     'output': 'output_filename',
                     'text': 'Krix.Tam',
                     'color': 'FFFFFF',
-                    'font': 'arial.ttf',
+                    'font': DEFAULT_FONT,
                     'font_size': 24,
                     'x': 5,
                     'y': 5,

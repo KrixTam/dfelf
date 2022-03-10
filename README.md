@@ -201,6 +201,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
     'resize': {
         'input': 'input_filename',
         'output': 'output_filename',
+        'scale': False,
         'width': 28,
         'height': 28,
         'quality': 100,

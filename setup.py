@@ -2,11 +2,12 @@ from setuptools import setup
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
-
 setup(
     name='dfelf',
-    version='0.1.0',
-    packages=['dfelf'],
+    version='0.1.1',
+    packages=['dfelf', 'dfelf.res', 'dfelf.res.Noto_Sans_SC'],
+    package_data={'dfelf': ['LICENSE', './dfelf/res/Noto_Sans_SC/*.otf', './dfelf/res/Noto_Sans_SC/OFL.txt']},
+    include_package_data=True,
     url='https://github.com/KrixTam/dfelf',
     license='MIT',
     author='Krix Tam',
@@ -35,3 +36,4 @@ setup(
         'opencv-python>=4.5.3.56'
     ]
 )
+

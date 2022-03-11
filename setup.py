@@ -33,7 +33,7 @@ setup(
         'Pillow>=5.2.0',
         'pdf2image>=1.14.0',
         'qrcode>=7.2',
-        'opencv-python>=4.5.3.56'
+        'opencv-python>=4.5.3.56',
+        'scikit-image>=0.19.2'
     ]
 )
-

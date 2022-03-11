@@ -1,11 +1,11 @@
-from io import BytesIO
 from PIL import Image
 from shutil import copyfile
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
-from pdf2image import convert_from_bytes
+from pdf2image import convert_from_path
 from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger
+from moment import moment
 
 
 class PDFFileElf(DataFileElf):
@@ -97,21 +97,13 @@ class PDFFileElf(DataFileElf):
                 output_filename_prefix = self._config[task_key]['output']
                 image_format = self._config[task_key]['format']
                 output_pages = self._config[task_key]['pages']
-                dpi = self._config[task_key]['dpi']
-                for page_index in output_pages:
-                    memory_output = PdfFileWriter()
-                    memory_output.addPage(kwargs['pdf'].getPage(page_index - 1))
-                    output_stream = BytesIO()
-                    memory_output.write(output_stream)
-                    pages = convert_from_bytes(output_stream.getvalue(), dpi)
-                    output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-                    pages[0].save(self.get_log_path(output_filename), formats[image_format])
                 if self._output_flag:
-                    for page_index in output_pages:
-                        output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-                        src_filename = self.get_log_path(output_filename)
-                        dis_filename = self.get_output_path(output_filename)
-                        copyfile(src_filename, dis_filename)
+                    get_path = self.get_output_path
+                else:
+                    get_path = self.get_log_path
+                for i in range(len(kwargs['pages'])):
+                    output_filename = output_filename_prefix + '_' + str(output_pages[i]) + '.' + image_format
+                    kwargs['pages'][i].save(get_path(output_filename), formats[image_format])
             else:
                 if task_key == 'reorganize':
                     output_filename = self._config[task_key]['output']
@@ -206,8 +198,16 @@ class PDFFileElf(DataFileElf):
                 pdf_file = PdfFileReader(input_stream, strict=False)
             else:
                 pdf_file = input_obj
-            self.to_output(task_key, pdf=pdf_file)
-            pdf_file.stream.close()
+            reorganize_config = {
+                'output': 'tmp_' + str(moment().unix_timestamp()) + '.pdf',
+                'pages': self._config[task_key]['pages']
+            }
+            output_flag = self._output_flag
+            self._output_flag = False
+            self.reorganize(pdf_file, **reorganize_config)
+            self._output_flag = output_flag
+            pages = convert_from_path(self.get_log_path(reorganize_config['output']), self._config[task_key]['dpi'])
+            self.to_output(task_key, pages=pages)
             output_filename_prefix = self._config[task_key]['output']
             image_format = self._config[task_key]['format']
             output_pages = self._config[task_key]['pages']

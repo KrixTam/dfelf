@@ -1,9 +1,10 @@
 import os
 import unittest
-from dfelf.test.utils import get_platform
 from dfelf import PDFFileElf
 from PIL import Image
 from PyPDF2.pdf import PdfFileReader
+from dfelf.commons import is_same_image, to_same_size
+from moment import moment
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -53,16 +54,25 @@ class TestPDFFileElf(unittest.TestCase):
         }
         df_elf.image2pdf(**config)
         config_02 = {
-            'input': df_elf.get_output_path('mr_01.pdf'),
+            'input': df_elf.get_output_path(config['output']),
             'output': 'mr_01',
             'format': 'png',
             'pages': [1, 2]
         }
         df_elf.to_image(**config_02)
-        res_01 = df_elf.checksum(os.path.join(cwd, 'result', 'mr_01_1.png'))
-        res_02 = df_elf.checksum(os.path.join(cwd, 'result', 'mr_01_2.png'))
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_01_1.png')), res_01)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_01_2.png')), res_02)
+        ori_01 = config['images'][0]
+        out_01 = df_elf.get_output_path('mr_01_1.png')
+        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
+        to_same_size(ori_01, out_01, tmp_filename)
+        self.assertTrue(is_same_image(ori_01, tmp_filename, rel_tol=0.05, ignore_alpha=True))
+        com_file = os.path.join(cwd, 'result', '01.png')
+        # print(com_file)
+        self.assertFalse(is_same_image(tmp_filename, com_file, rel_tol=0.05, ignore_alpha=True))
+        ori_02 = config['images'][1]
+        out_02 = df_elf.get_output_path('mr_01_2.png')
+        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
+        to_same_size(ori_02, out_02, tmp_filename)
+        self.assertTrue(is_same_image(ori_02, tmp_filename, rel_tol=0.05, ignore_alpha=True))
 
     def test_image2pdf_02(self):
         df_elf = PDFFileElf()
@@ -77,7 +87,9 @@ class TestPDFFileElf(unittest.TestCase):
         config = {
             'output': 'mr_02.pdf'
         }
-        input_imgs = [Image.open(os.path.join(cwd, 'sources', '01.png')), Image.open(os.path.join(cwd, 'sources', '02.png'))]
+        img_01 = os.path.join(cwd, 'sources', '01.png')
+        img_02 = os.path.join(cwd, 'sources', '02.png')
+        input_imgs = [Image.open(img_01), Image.open(img_02)]
         df_elf.image2pdf(input_imgs, **config)
         input_filename = df_elf.get_output_path('mr_02.pdf')
         config_02 = {
@@ -88,10 +100,16 @@ class TestPDFFileElf(unittest.TestCase):
         input_stream = open(input_filename, 'rb')
         pdf_file = PdfFileReader(input_stream, strict=False)
         df_elf.to_image(pdf_file, **config_02)
-        res_01 = df_elf.checksum(os.path.join(cwd, 'result', 'mr_01_1.png'))
-        res_02 = df_elf.checksum(os.path.join(cwd, 'result', 'mr_01_2.png'))
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_01_1.png')), res_01)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path('mr_01_2.png')), res_02)
+        ori_01 = img_01
+        out_01 = df_elf.get_output_path('mr_02_1.png')
+        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
+        to_same_size(ori_01, out_01, tmp_filename)
+        self.assertTrue(is_same_image(ori_01, tmp_filename, rel_tol=0.05, ignore_alpha=True))
+        ori_02 = img_02
+        out_02 = df_elf.get_output_path('mr_02_2.png')
+        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
+        to_same_size(ori_02, out_02, tmp_filename)
+        self.assertTrue(is_same_image(ori_02, tmp_filename, rel_tol=0.05, ignore_alpha=True))
 
     def test_image2pdf_04(self):
         df_elf = PDFFileElf()
@@ -112,14 +130,8 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf.to_image(**config)
         filename_01 = config['output'] + '_4.png'
         filename_02 = config['output'] + '_3.png'
-        if get_platform() == 'Windows':
-            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)),
-                             df_elf.checksum(os.path.join(cwd, 'result', filename_01)))
-            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)),
-                             df_elf.checksum(os.path.join(cwd, 'result', filename_02)))
-        else:
-            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_01)), '83da825a636756f03213276f393fcab7')
-            self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_01), os.path.join(cwd, 'result', filename_01)))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_02), os.path.join(cwd, 'result', filename_02)))
 
     def test_2image_02(self):
         df_elf = PDFFileElf(output_flag=False)
@@ -132,14 +144,8 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf.to_image(**config)
         filename_01 = config['output'] + '_4.png'
         filename_02 = config['output'] + '_3.png'
-        if get_platform() == 'Windows':
-            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_01)),
-                             df_elf.checksum(os.path.join(cwd, 'result', filename_01)))
-            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_02)),
-                             df_elf.checksum(os.path.join(cwd, 'result', filename_02)))
-        else:
-            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_01)), '83da825a636756f03213276f393fcab7')
-            self.assertEqual(df_elf.checksum(df_elf.get_log_path(filename_02)), '00cf3701dafd2d753d865dc0779fb764')
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_01), os.path.join(cwd, 'result', filename_01)))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_02), os.path.join(cwd, 'result', filename_02)))
 
     def test_default(self):
         df_elf = PDFFileElf()

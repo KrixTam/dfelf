@@ -92,10 +92,7 @@ class TestImageFileElf(unittest.TestCase):
             'alpha': 20
         }
         df_elf.watermark(**watermark)
-        if get_platform() == 'Windows':
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        else:
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_mac.png')
+        result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_watermark_02(self):
@@ -113,10 +110,7 @@ class TestImageFileElf(unittest.TestCase):
             'alpha': 20
         }
         df_elf.watermark(input_img, **watermark)
-        if get_platform() == 'Windows':
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        else:
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_mac.png')
+        result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_watermark_03(self):
@@ -132,10 +126,7 @@ class TestImageFileElf(unittest.TestCase):
             'alpha': 20
         }
         df_elf.watermark(input_img, **watermark)
-        if get_platform() == 'Windows':
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def.png')
-        else:
-            result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def_mac.png')
+        result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_base64_01(self):

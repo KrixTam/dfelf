@@ -31,7 +31,7 @@ test_modules = [
 ]
 
 # 执行测试用例
-cov = coverage.Coverage()
+cov = coverage.Coverage(source=["./dfelf"])
 cov.start()
 
 run_all_tests(test_modules)

@@ -1,3 +1,3 @@
 include LICENSE
-include ./dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf
-include ./dfelf/res/Noto_Sans_SC/OFL.txt
+include dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf
+include dfelf/res/Noto_Sans_SC/OFL.txt

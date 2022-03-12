@@ -62,7 +62,7 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf.to_image(**config_02)
         ori_01 = config['images'][0]
         out_01 = df_elf.get_output_path('mr_01_1.png')
-        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
+        tmp_filename = df_elf.get_log_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
         to_same_size(ori_01, out_01, tmp_filename)
         self.assertTrue(is_same_image(ori_01, tmp_filename, rel_tol=0.05, ignore_alpha=True))
         com_file = os.path.join(cwd, 'result', '01.png')
@@ -70,7 +70,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertFalse(is_same_image(tmp_filename, com_file, rel_tol=0.05, ignore_alpha=True))
         ori_02 = config['images'][1]
         out_02 = df_elf.get_output_path('mr_01_2.png')
-        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
+        tmp_filename = df_elf.get_log_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
         to_same_size(ori_02, out_02, tmp_filename)
         self.assertTrue(is_same_image(ori_02, tmp_filename, rel_tol=0.05, ignore_alpha=True))
 
@@ -102,12 +102,12 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf.to_image(pdf_file, **config_02)
         ori_01 = img_01
         out_01 = df_elf.get_output_path('mr_02_1.png')
-        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
+        tmp_filename = df_elf.get_log_path('tmp_' + str(moment().unix_timestamp()) + '_01.png')
         to_same_size(ori_01, out_01, tmp_filename)
         self.assertTrue(is_same_image(ori_01, tmp_filename, rel_tol=0.05, ignore_alpha=True))
         ori_02 = img_02
         out_02 = df_elf.get_output_path('mr_02_2.png')
-        tmp_filename = df_elf.get_output_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
+        tmp_filename = df_elf.get_log_path('tmp_' + str(moment().unix_timestamp()) + '_02.png')
         to_same_size(ori_02, out_02, tmp_filename)
         self.assertTrue(is_same_image(ori_02, tmp_filename, rel_tol=0.05, ignore_alpha=True))
 

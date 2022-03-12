@@ -129,6 +129,24 @@ class TestImageFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
+    def test_watermark_04(self):
+        df_elf = ImageFileElf()
+        input_filename = os.path.join(cwd, 'sources', 'icon.png')
+        input_img = Image.open(input_filename)
+        filename = 'icon_watermark_04.png'
+        watermark = {
+            'output': filename,
+            'text': 'Krix.Tam',
+            'color': 'FFFFFF',
+            'font_size': 14,
+            'alpha': 20,
+            'x': -65,
+            'y': -25
+        }
+        df_elf.watermark(input_img, **watermark)
+        result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_pos.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
     def test_base64_01(self):
         df_elf = ImageFileElf()
         input_filename = os.path.join(cwd, 'sources', 'icon.png')

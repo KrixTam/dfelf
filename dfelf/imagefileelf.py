@@ -312,8 +312,13 @@ class ImageFileElf(DataFileElf):
             font_draw = ImageFont.truetype(self._config[task_key]['font'], self._config[task_key]['font_size'])
             text = self._config[task_key]['text']
             color = self._config[task_key]['color']
+            width, height = img.size
             x = self._config[task_key]['x']
             y = self._config[task_key]['y']
+            if x < 0:
+                x = width + x
+            if y < 0:
+                y = height + y
             alpha = int(self._config[task_key]['alpha'] / 100 * 255)
             color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
             loc = (x, y)

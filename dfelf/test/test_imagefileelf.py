@@ -50,7 +50,7 @@ class TestImageFileElf(unittest.TestCase):
             'width': 125
         }
         df_elf.splice(**splice_config)
-        result_filename = os.path.join(cwd, 'result', 'icon_splice.png')
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_v.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_splice_02(self):
@@ -64,7 +64,7 @@ class TestImageFileElf(unittest.TestCase):
             'width': 125
         }
         df_elf.splice(input_imgs, **splice_config)
-        result_filename = os.path.join(cwd, 'result', 'icon_splice.png')
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_v.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_splice_03(self):
@@ -76,6 +76,20 @@ class TestImageFileElf(unittest.TestCase):
             'width': 125
         }
         self.assertEqual(None, df_elf.splice(input_imgs, **splice_config))
+
+    def test_splice_04(self):
+        input_filename = os.path.join(cwd, 'sources', 'icon.png')
+        filename = 'icon_splice_04.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'images': [input_filename, input_filename],
+            'width': 125,
+            'mode': 'H'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_h.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
 
     def test_watermark_01(self):
         df_elf = ImageFileElf()

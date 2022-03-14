@@ -269,28 +269,49 @@ class ImageFileElf(DataFileElf):
                 input_images = input_obj.copy()
             if num_img > 0:
                 output_filename = self._config[task_key]['output']
-                width = self._config[task_key]['width']
                 gap = self._config[task_key]['gap']
-                width_img = 2 * gap + width
-                height_img = gap
                 images = []
                 locations = []
-                y = gap
-                locations.append(y)
-                for i in range(num_img):
-                    img = input_images[i].copy()
-                    resize_height = int(img.size[1] * width / img.size[0])
-                    height_img = height_img + resize_height + gap
-                    images.append(img.resize((width, resize_height), Image.ANTIALIAS))
-                    y = y + resize_height + gap
+                if self._config[task_key]['mode'].lower() == 'v':
+                    width = self._config[task_key]['width']
+                    width_img = 2 * gap + width
+                    height_img = gap
+                    y = gap
                     locations.append(y)
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
-                for i in range(num_img):
-                    img = images[i]
-                    loc = (gap, locations[i])
-                    ret_img.paste(img, loc)
-                self.to_output(task_key, img=ret_img, filename=output_filename)
-                return ret_img
+                    for i in range(num_img):
+                        img = input_images[i].copy()
+                        resize_height = int(img.size[1] * width / img.size[0])
+                        height_img = height_img + resize_height + gap
+                        images.append(img.resize((width, resize_height), Image.ANTIALIAS))
+                        y = y + resize_height + gap
+                        locations.append(y)
+                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                    for i in range(num_img):
+                        img = images[i]
+                        loc = (gap, locations[i])
+                        ret_img.paste(img, loc)
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    return ret_img
+                else:
+                    height = self._config[task_key]['width']
+                    width_img = gap
+                    height_img = 2 * gap + height
+                    x = gap
+                    locations.append(x)
+                    for i in range(num_img):
+                        img = input_images[i].copy()
+                        resize_width = int(img.size[0] * height / img.size[1])
+                        width_img = width_img + resize_width + gap
+                        images.append(img.resize((resize_width, height), Image.ANTIALIAS))
+                        x = x + resize_width + gap
+                        locations.append(x)
+                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                    for i in range(num_img):
+                        img = images[i]
+                        loc = (locations[i], gap)
+                        ret_img.paste(img, loc)
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    return ret_img
             else:
                 logger.warning([3000])
                 return None

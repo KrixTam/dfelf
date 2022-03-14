@@ -264,3 +264,5 @@ config = {
 input_df = pd.read_csv(os.path.join('sources', 'df1.csv'), dtype=str)
 df_elf.add(input_df, **config)
 ```
+
+ImageFileElf.watermark在v0.1.3版本中，对*color*参数支持值为"**auto**"的设定，表示由程序自动选择水印颜色；颜色选择方法为水印所在位置(*x, y*)区域高频使用颜色的反转颜色。

@@ -11,6 +11,7 @@ import numpy as np
 from moment import moment
 import imghdr
 import math
+from collections import Counter
 try:
     import importlib.resources as pkg_resources
 except ImportError:  # pragma: no cover
@@ -18,6 +19,20 @@ except ImportError:  # pragma: no cover
     import importlib_resources as pkg_resources  # pragma: no cover
 from dfelf.res import Noto_Sans_SC
 DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
+
+
+def most_used_color(img, left, upper, width, height):
+    right = left + width
+    lower = upper + height
+    img_c = img.crop((left, upper, right, lower)).convert('RGB')
+    count_by_color = Counter(img_c.getdata())
+    return count_by_color.most_common()[0][0]
+
+
+def get_invert_color(img, left, upper, width, height):
+    r, g, b = most_used_color(img, left, upper, width, height)
+    color = (255 - r, 255 - g, 255 - b)
+    return color
 
 
 class ImageFileElf(DataFileElf):
@@ -43,7 +58,7 @@ class ImageFileElf(DataFileElf):
                     'input': 'input_filename',
                     'output': 'output_filename',
                     'text': 'Krix.Tam',
-                    'color': 'FFFFFF',
+                    'color': 'auto',
                     'font': DEFAULT_FONT,
                     'font_size': 24,
                     'x': 5,
@@ -108,7 +123,7 @@ class ImageFileElf(DataFileElf):
                             'text': {'type': 'string'},
                             'color': {
                                 'type': 'string',
-                                'pattern': '[A-Fa-f0-9]{6}'
+                                'pattern': '([A-Fa-f0-9]{6})|(auto)'
                             },
                             'font': {'type': 'string'},
                             'font_size': {'type': 'number'},
@@ -320,7 +335,10 @@ class ImageFileElf(DataFileElf):
             if y < 0:
                 y = height + y
             alpha = int(self._config[task_key]['alpha'] / 100 * 255)
-            color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
+            if color == 'auto':
+                color = get_invert_color(img, x, y, 10, 10) + (alpha,)
+            else:
+                color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
             loc = (x, y)
             txt_img = Image.new('RGBA', img.size, (0, 0, 0, 0))
             draw = ImageDraw.Draw(txt_img)

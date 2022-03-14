@@ -167,7 +167,8 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
         'output': 'output_filename',
         'images': [],
         'width': 700,
-        'gap': 5
+        'gap': 5,
+        'mode': 'v'
     },
     'watermark': {
         'input': 'input_filename',
@@ -266,3 +267,5 @@ df_elf.add(input_df, **config)
 ```
 
 ImageFileElf.watermark在v0.1.3版本中，对*color*参数支持值为"**auto**"的设定，表示由程序自动选择水印颜色；颜色选择方法为水印所在位置(*x, y*)区域高频使用颜色的反转颜色。
+
+ImageFileElf.splice自v0.1.3版本开始，支持水平拼接（设置*mode*参数为"**H**"或"**h**"，默认为垂直拼接，即*mode*参数为"**v**"或"**V**"）。

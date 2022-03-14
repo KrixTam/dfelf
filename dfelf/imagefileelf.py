@@ -52,7 +52,8 @@ class ImageFileElf(DataFileElf):
                     'output': 'output_filename',
                     'images': [],
                     'width': 700,
-                    'gap': 5
+                    'gap': 5,
+                    'mode': 'v'
                 },
                 'watermark': {
                     'input': 'input_filename',
@@ -112,7 +113,11 @@ class ImageFileElf(DataFileElf):
                                 'items': {'type': 'string'}
                             },
                             'width': {'type': 'number'},
-                            'gap': {'type': 'number'}
+                            'gap': {'type': 'number'},
+                            'mode': {
+                                'type': 'string',
+                                'pattern': '[vVhH]{1}'
+                            }
                         }
                     },
                     'watermark': {
@@ -254,63 +259,41 @@ class ImageFileElf(DataFileElf):
         else:
             if input_obj is None:
                 num_img = len(self._config[task_key]['images'])
-                output_filename = self._config[task_key]['output']
-                if num_img > 0:
-                    width = self._config[task_key]['width']
-                    gap = self._config[task_key]['gap']
-                    width_img = 2 * gap + width
-                    height_img = gap
-                    images = []
-                    locations = []
-                    y = gap
-                    locations.append(y)
-                    for i in range(num_img):
-                        filename = self._config[task_key]['images'][i]
-                        img = Image.open(filename)
-                        resize_height = int(img.size[1] * width / img.size[0])
-                        height_img = height_img + resize_height + gap
-                        images.append(img.resize((width, resize_height), Image.ANTIALIAS))
-                        y = y + resize_height + gap
-                        locations.append(y)
-                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
-                    for i in range(num_img):
-                        img = images[i]
-                        loc = (gap, locations[i])
-                        ret_img.paste(img, loc)
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
-                    return ret_img
-                else:
-                    logger.warning([3000])
-                    return None
+                input_images = []
+                for i in range(num_img):
+                    filename = self._config[task_key]['images'][i]
+                    img = Image.open(filename)
+                    input_images.append(img)
             else:
                 num_img = len(input_obj)
+                input_images = input_obj.copy()
+            if num_img > 0:
                 output_filename = self._config[task_key]['output']
-                if num_img > 0:
-                    width = self._config[task_key]['width']
-                    gap = self._config[task_key]['gap']
-                    width_img = 2 * gap + width
-                    height_img = gap
-                    images = []
-                    locations = []
-                    y = gap
+                width = self._config[task_key]['width']
+                gap = self._config[task_key]['gap']
+                width_img = 2 * gap + width
+                height_img = gap
+                images = []
+                locations = []
+                y = gap
+                locations.append(y)
+                for i in range(num_img):
+                    img = input_images[i].copy()
+                    resize_height = int(img.size[1] * width / img.size[0])
+                    height_img = height_img + resize_height + gap
+                    images.append(img.resize((width, resize_height), Image.ANTIALIAS))
+                    y = y + resize_height + gap
                     locations.append(y)
-                    for i in range(num_img):
-                        img = input_obj[i].copy()
-                        resize_height = int(img.size[1] * width / img.size[0])
-                        height_img = height_img + resize_height + gap
-                        images.append(img.resize((width, resize_height), Image.ANTIALIAS))
-                        y = y + resize_height + gap
-                        locations.append(y)
-                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
-                    for i in range(num_img):
-                        img = images[i]
-                        loc = (gap, locations[i])
-                        ret_img.paste(img, loc)
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
-                    return ret_img
-                else:
-                    logger.warning([3000])
-                    return None
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = images[i]
+                    loc = (gap, locations[i])
+                    ret_img.paste(img, loc)
+                self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+            else:
+                logger.warning([3000])
+                return None
 
     def watermark(self, input_obj: Image.Image = None, **kwargs):
         task_key = 'watermark'

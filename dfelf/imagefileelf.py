@@ -21,7 +21,7 @@ from dfelf.res import Noto_Sans_SC
 DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
 
 
-def most_used_color(img, left, upper, width, height):
+def most_used_color(img: Image.Image, left: int, upper: int, width: int, height: int):
     right = left + width
     lower = upper + height
     img_c = img.crop((left, upper, right, lower)).convert('RGB')
@@ -29,7 +29,7 @@ def most_used_color(img, left, upper, width, height):
     return count_by_color.most_common()[0][0]
 
 
-def get_invert_color(img, left, upper, width, height):
+def get_invert_color(img: Image.Image, left: int, upper: int, width: int, height: int):
     r, g, b = most_used_color(img, left, upper, width, height)
     color = (255 - r, 255 - g, 255 - b)
     return color
@@ -92,6 +92,12 @@ class ImageFileElf(DataFileElf):
                     'height': 28,
                     'quality': 100,
                     'dpi': 1200
+                },
+                'crop': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'mode': 0,
+                    'location': [0, 0, 5, 5]
                 }
             },
             'schema': {
@@ -200,6 +206,24 @@ class ImageFileElf(DataFileElf):
                                 'maximum': 100
                             },
                             'dpi': {'type': 'integer'}
+                        }
+                    },
+                    'crop': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'mode': {
+                                'type': 'integer',
+                                'minimum': 0,
+                                'maximum': 1
+                            },
+                            'location': {
+                                'type': 'array',
+                                'minItems': 4,
+                                'maxItems': 4,
+                                'items': {'type': 'integer'}
+                            }
                         }
                     }
                 }
@@ -368,7 +392,6 @@ class ImageFileElf(DataFileElf):
             qr = qrcode.QRCode(border=border_val)
             qr.add_data(input_string)
             qr_image = qr.make_image(fill_color=f_color, back_color=b_color)
-            # qr_image.save(self.get_output_path(output_filename))
             self.to_output(task_key, img=qr_image, filename=output_filename)
             return qr_image
 
@@ -459,3 +482,31 @@ class ImageFileElf(DataFileElf):
             img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
             self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
             return img_resize
+
+    def crop(self, input_obj: Image.Image = None, **kwargs):
+        task_key = 'crop'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if self.is_default(task_key):
+            return None
+        else:
+            left = self._config[task_key]['location'][0]
+            top = self._config[task_key]['location'][1]
+            right = self._config[task_key]['location'][2]
+            bottom = self._config[task_key]['location'][3]
+            output_filename = self._config[task_key]['output']
+            mode = self._config[task_key]['mode']
+            if 1 == mode:
+                right = left + right
+                bottom = top + bottom
+            if input_obj is None:
+                input_filename = self._config[task_key]['input']
+                img_ori = Image.open(input_filename)
+            else:
+                img_ori = input_obj.copy()
+            if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
+                img_result = img_ori.crop((left, top, right, bottom))
+                self.to_output(task_key, img=img_result, filename=output_filename)
+                return img_result
+            else:
+                logger.warning([3004, (left, top, right, bottom)])
+                return None

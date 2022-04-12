@@ -154,6 +154,9 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 * **to_base64**：将*input*的图片转化为base64字符串，并返回；对应的配置设定为*2base64*。
 * **from_base64**：将*input*的base64字符串转化为图片；对应的配置设定为*base64*。
 * **resize**：将*input*的图片调整尺寸后输出到*output*；对应的配置设定为*resize*。
+* **crop**：将*input*的图片按照*loaction*裁剪后输出到*output*；对应的配置设定为*crop*。当*mode*为**0**时，*location*为**left, top, right, bottom**构成的数组；当*mode*为**1**时，*location*为**left, top, width, right**构成的数组。
+
+> 注：ImageFileElf.crop自v0.1.4版本开始支持
 
 配置文件设定如下：
 
@@ -207,6 +210,12 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
         'height': 28,
         'quality': 100,
         'dpi': 1200
+    },
+    'crop': {
+        'input': 'input_filename',
+        'output': 'output_filename',
+        'mode': 0,
+        'location': [0, 0, 5, 5]
     }
 }
 ```

@@ -325,6 +325,7 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual((None, None), df_elf.to_base64(**config))
         self.assertEqual(None, df_elf.from_base64(**config))
         self.assertEqual(None, df_elf.resize(**config))
+        self.assertEqual(None, df_elf.crop(**config))
 
     def test_error_splice(self):
         df_elf = ImageFileElf()
@@ -340,6 +341,63 @@ class TestImageFileElf(unittest.TestCase):
             'input': os.path.join(cwd, 'sources', 'icon.png')
         }
         self.assertEqual(None, df_elf.decode_qrcode(**config))
+
+    def test_crop_01(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'crop_01.png',
+            'location': [385, 7, 784, 310]
+        }
+        df_elf.crop(**config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'crop.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_crop_02(self):
+        df_elf = ImageFileElf()
+        config = {
+            'output': 'crop_02.png',
+            'location': [385, 7, 784, 310]
+        }
+        input_img = Image.open(os.path.join(cwd, 'sources', '01.png'))
+        df_elf.crop(input_img, **config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'crop.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_crop_03(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'crop_03.png',
+            'location': [385, 7, 399, 303],
+            'mode': 1
+        }
+        df_elf.crop(**config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'crop.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_crop_04(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'crop_04.png',
+            'location': [385, 7, 784, 310],
+            'mode': 2
+        }
+        with self.assertRaises(ValueError):
+            df_elf.crop(**config)
+
+    def test_crop_05(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'crop_05.png',
+            'location': [784, 310, 385, 7],
+        }
+        self.assertEqual(None, df_elf.crop(**config))
 
 
 if __name__ == '__main__':

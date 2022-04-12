@@ -66,7 +66,6 @@ class TestPDFFileElf(unittest.TestCase):
         to_same_size(ori_01, out_01, tmp_filename)
         self.assertTrue(is_same_image(ori_01, tmp_filename, rel_tol=0.05, ignore_alpha=True))
         com_file = os.path.join(cwd, 'result', '01.png')
-        # print(com_file)
         self.assertFalse(is_same_image(tmp_filename, com_file, rel_tol=0.05, ignore_alpha=True))
         ori_02 = config['images'][1]
         out_02 = df_elf.get_output_path('mr_01_2.png')

@@ -319,191 +319,192 @@ class CSVFileElf(DataFileElf):
     def add(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'add'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['base']['name'])
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                df_ori = input_obj.copy()
-            key_ori = self._config[task_key]['base']['key']
-            if self._config[task_key]['base']['drop_duplicates']:
-                df_ori = self.drop_duplicates(df_ori, key_ori)[0]
-            for tag in self._config[task_key]['tags']:
-                df_tag = CSVFileElf.read_content(tag['name'])
-                key_right = tag['key']
-                df_tag = self.drop_duplicates(df_tag, key_right)[0]
-                fields = tag['fields']
-                defaults = tag['defaults']
-                columns = df_tag.columns
-                for col in columns:
-                    if col in fields or col == key_right:
-                        pass
-                    else:
-                        df_tag.drop([col], axis=1, inplace=True)
-                df_tag.rename(columns={key_right: key_ori}, inplace=True)
-                df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_ori)
-                for x in range(len(fields)):
-                    df_ori[fields[x]].fillna(defaults[x], inplace=True)
-            self.to_output(task_key, df=df_ori)
-            return df_ori
+                df_ori = CSVFileElf.read_content(self._config[task_key]['base']['name'])
+        else:
+            df_ori = input_obj.copy()
+        key_ori = self._config[task_key]['base']['key']
+        if self._config[task_key]['base']['drop_duplicates']:
+            df_ori = self.drop_duplicates(df_ori, key_ori)[0]
+        for tag in self._config[task_key]['tags']:
+            df_tag = CSVFileElf.read_content(tag['name'])
+            key_right = tag['key']
+            df_tag = self.drop_duplicates(df_tag, key_right)[0]
+            fields = tag['fields']
+            defaults = tag['defaults']
+            columns = df_tag.columns
+            for col in columns:
+                if col in fields or col == key_right:
+                    pass
+                else:
+                    df_tag.drop([col], axis=1, inplace=True)
+            df_tag.rename(columns={key_right: key_ori}, inplace=True)
+            df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_ori)
+            for x in range(len(fields)):
+                df_ori[fields[x]].fillna(defaults[x], inplace=True)
+        self.to_output(task_key, df=df_ori)
+        return df_ori
 
     def join(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'join'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['base'])
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                df_ori = input_obj.copy()
-            files = self._config[task_key]['files']
-            for file in files:
-                df = CSVFileElf.read_content(file['name'])
-                if len(file['mappings']) > 0:
-                    for key, value in file['mappings'].items():
-                        df.rename(columns={key: value}, inplace=True)
-                df_ori = df_ori.append(df)
-            self.to_output(task_key, df=df_ori)
-            return df_ori
+                df_ori = CSVFileElf.read_content(self._config[task_key]['base'])
+        else:
+            df_ori = input_obj.copy()
+        files = self._config[task_key]['files']
+        for file in files:
+            df = CSVFileElf.read_content(file['name'])
+            if len(file['mappings']) > 0:
+                for key, value in file['mappings'].items():
+                    df.rename(columns={key: value}, inplace=True)
+            df_ori = df_ori.append(df)
+        self.to_output(task_key, df=df_ori)
+        return df_ori
 
     def exclude(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'exclude'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                df_ori = input_obj.copy()
-            exclusion = self._config[task_key]['exclusion']
-            for e in exclusion:
-                key = e['key']
-                op = e['op']
-                value = e['value']
-                if isinstance(value, str):
-                    if '=' == op:
-                        df_ori = df_ori.loc[df_ori[key] != value]
-                        continue
-                    if '!=' == op:
-                        df_ori = df_ori.loc[df_ori[key] == value]
-                        continue
-                    if '>' == op:
-                        df_ori = df_ori.loc[df_ori[key] <= value]
-                        continue
-                    if '>=' == op:
-                        df_ori = df_ori.loc[df_ori[key] < value]
-                        continue
-                    if '<' == op:
-                        df_ori = df_ori.loc[df_ori[key] >= value]
-                        continue
-                    if '<=' == op:
-                        df_ori = df_ori.loc[df_ori[key] > value]
-                        continue
-                else:
-                    key_tmp = key + '_tmp'
-                    df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
-                    if '=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
-                        continue
-                    if '!=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
-                        continue
-                    if '>' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
-                        continue
-                    if '>=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
-                        continue
-                    if '<' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
-                        continue
-                    if '<=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
-                        continue
-            self.to_output(task_key, df=df_ori)
-            return df_ori
+                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+        else:
+            df_ori = input_obj.copy()
+        exclusion = self._config[task_key]['exclusion']
+        for e in exclusion:
+            key = e['key']
+            op = e['op']
+            value = e['value']
+            if isinstance(value, str):
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key] != value]
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key] == value]
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key] <= value]
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key] < value]
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key] >= value]
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key] > value]
+                    continue
+            else:
+                key_tmp = key + '_tmp'
+                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                    continue
+        self.to_output(task_key, df=df_ori)
+        return df_ori
 
     def filter(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'filter'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                df_ori = input_obj.copy()
-            filters = self._config[task_key]['filters']
-            for f in filters:
-                key = f['key']
-                op = f['op']
-                value = f['value']
-                if isinstance(value, str):
-                    if '=' == op:
-                        df_ori = df_ori.loc[df_ori[key] == value]
-                        continue
-                    if '!=' == op:
-                        df_ori = df_ori.loc[df_ori[key] != value]
-                        continue
-                    if '>' == op:
-                        df_ori = df_ori.loc[df_ori[key] > value]
-                        continue
-                    if '>=' == op:
-                        df_ori = df_ori.loc[df_ori[key] >= value]
-                        continue
-                    if '<' == op:
-                        df_ori = df_ori.loc[df_ori[key] < value]
-                        continue
-                    if '<=' == op:
-                        df_ori = df_ori.loc[df_ori[key] <= value]
-                        continue
-                else:
-                    key_tmp = key + '_tmp'
-                    df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
-                    if '=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
-                        continue
-                    if '!=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
-                        continue
-                    if '>' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
-                        continue
-                    if '>=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
-                        continue
-                    if '<' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
-                        continue
-                    if '<=' == op:
-                        df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
-                        continue
-            self.to_output(task_key, df=df_ori)
-            return df_ori
+                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+        else:
+            df_ori = input_obj.copy()
+        filters = self._config[task_key]['filters']
+        for f in filters:
+            key = f['key']
+            op = f['op']
+            value = f['value']
+            if isinstance(value, str):
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key] == value]
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key] != value]
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key] > value]
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key] >= value]
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key] < value]
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key] <= value]
+                    continue
+            else:
+                key_tmp = key + '_tmp'
+                df_ori[key_tmp] = df_ori[key].apply(lambda x: float(x))
+                if '=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] == value].drop(columns=[key_tmp])
+                    continue
+                if '!=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] != value].drop(columns=[key_tmp])
+                    continue
+                if '>' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
+                    continue
+                if '>=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] >= value].drop(columns=[key_tmp])
+                    continue
+                if '<' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] < value].drop(columns=[key_tmp])
+                    continue
+                if '<=' == op:
+                    df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
+                    continue
+        self.to_output(task_key, df=df_ori)
+        return df_ori
 
     def split(self, input_obj: pd.DataFrame = None, **kwargs):
         task_key = 'split'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            input_filename = self._config[task_key]['input']
-            if input_obj is None:
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                input_filename = self._config[task_key]['input']
                 df_ori = CSVFileElf.read_content(input_filename)
-            else:
-                df_ori = input_obj.copy()
-            key_name = self._config[task_key]['key']
-            columns = df_ori.columns
-            res = []
-            if key_name in columns:
-                split_keys = df_ori[key_name].unique()
-                for key in split_keys:
-                    tmp_df = df_ori.loc[df_ori[key_name] == key]
-                    self.to_output(task_key, df=tmp_df, filename=key)
-                    res.append(tmp_df)
-                return res
-            else:
-                raise KeyError(logger.error([2002, input_filename, key_name]))
+        else:
+            input_filename = '<内存对象>'
+            df_ori = input_obj.copy()
+        key_name = self._config[task_key]['key']
+        columns = df_ori.columns
+        res = []
+        if key_name in columns:
+            split_keys = df_ori[key_name].unique()
+            for key in split_keys:
+                tmp_df = df_ori.loc[df_ori[key_name] == key]
+                self.to_output(task_key, df=tmp_df, filename=key)
+                res.append(tmp_df)
+            return res
+        else:
+            raise KeyError(logger.error([2002, input_filename, key_name]))

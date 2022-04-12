@@ -98,6 +98,13 @@ class ImageFileElf(DataFileElf):
                     'output': 'output_filename',
                     'mode': 0,
                     'location': [0, 0, 5, 5]
+                },
+                'mosaic': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'mode': 0,
+                    'location': [0, 0, 5, 5],
+                    'unit': 5
                 }
             },
             'schema': {
@@ -225,6 +232,28 @@ class ImageFileElf(DataFileElf):
                                 'items': {'type': 'integer'}
                             }
                         }
+                    },
+                    'mosaic': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'mode': {
+                                'type': 'integer',
+                                'minimum': 0,
+                                'maximum': 1
+                            },
+                            'location': {
+                                'type': 'array',
+                                'minItems': 4,
+                                'maxItems': 4,
+                                'items': {'type': 'integer'}
+                            },
+                            'unit': {
+                                'type': 'integer',
+                                'minimum': 1
+                            }
+                        }
                     }
                 }
             }
@@ -278,122 +307,122 @@ class ImageFileElf(DataFileElf):
     def splice(self, input_obj: list = None, **kwargs):
         task_key = 'splice'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
                 num_img = len(self._config[task_key]['images'])
                 input_images = []
                 for i in range(num_img):
                     filename = self._config[task_key]['images'][i]
                     img = Image.open(filename)
                     input_images.append(img)
-            else:
-                num_img = len(input_obj)
-                input_images = input_obj.copy()
-            if num_img > 0:
-                output_filename = self._config[task_key]['output']
-                gap = self._config[task_key]['gap']
-                images = []
-                locations = []
-                if self._config[task_key]['mode'].lower() == 'v':
-                    width = self._config[task_key]['width']
-                    width_img = 2 * gap + width
-                    height_img = gap
-                    y = gap
+        else:
+            num_img = len(input_obj)
+            input_images = input_obj.copy()
+        if num_img > 0:
+            output_filename = self._config[task_key]['output']
+            gap = self._config[task_key]['gap']
+            images = []
+            locations = []
+            if self._config[task_key]['mode'].lower() == 'v':
+                width = self._config[task_key]['width']
+                width_img = 2 * gap + width
+                height_img = gap
+                y = gap
+                locations.append(y)
+                for i in range(num_img):
+                    img = input_images[i].copy()
+                    resize_height = int(img.size[1] * width / img.size[0])
+                    height_img = height_img + resize_height + gap
+                    images.append(img.resize((width, resize_height), Image.ANTIALIAS))
+                    y = y + resize_height + gap
                     locations.append(y)
-                    for i in range(num_img):
-                        img = input_images[i].copy()
-                        resize_height = int(img.size[1] * width / img.size[0])
-                        height_img = height_img + resize_height + gap
-                        images.append(img.resize((width, resize_height), Image.ANTIALIAS))
-                        y = y + resize_height + gap
-                        locations.append(y)
-                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
-                    for i in range(num_img):
-                        img = images[i]
-                        loc = (gap, locations[i])
-                        ret_img.paste(img, loc)
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
-                    return ret_img
-                else:
-                    height = self._config[task_key]['width']
-                    width_img = gap
-                    height_img = 2 * gap + height
-                    x = gap
-                    locations.append(x)
-                    for i in range(num_img):
-                        img = input_images[i].copy()
-                        resize_width = int(img.size[0] * height / img.size[1])
-                        width_img = width_img + resize_width + gap
-                        images.append(img.resize((resize_width, height), Image.ANTIALIAS))
-                        x = x + resize_width + gap
-                        locations.append(x)
-                    ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
-                    for i in range(num_img):
-                        img = images[i]
-                        loc = (locations[i], gap)
-                        ret_img.paste(img, loc)
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
-                    return ret_img
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = images[i]
+                    loc = (gap, locations[i])
+                    ret_img.paste(img, loc)
+                self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
             else:
-                logger.warning([3000])
-                return None
+                height = self._config[task_key]['width']
+                width_img = gap
+                height_img = 2 * gap + height
+                x = gap
+                locations.append(x)
+                for i in range(num_img):
+                    img = input_images[i].copy()
+                    resize_width = int(img.size[0] * height / img.size[1])
+                    width_img = width_img + resize_width + gap
+                    images.append(img.resize((resize_width, height), Image.ANTIALIAS))
+                    x = x + resize_width + gap
+                    locations.append(x)
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = images[i]
+                    loc = (locations[i], gap)
+                    ret_img.paste(img, loc)
+                self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+        else:
+            logger.warning([3000])
+            return None
 
     def watermark(self, input_obj: Image.Image = None, **kwargs):
         task_key = 'watermark'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
                 input_filename = self._config[task_key]['input']
                 img = Image.open(input_filename)
-            else:
-                img = input_obj.copy()
-            output_filename = self._config[task_key]['output']
-            font_draw = ImageFont.truetype(self._config[task_key]['font'], self._config[task_key]['font_size'])
-            text = self._config[task_key]['text']
-            color = self._config[task_key]['color']
-            width, height = img.size
-            x = self._config[task_key]['x']
-            y = self._config[task_key]['y']
-            if x < 0:
-                x = width + x
-            if y < 0:
-                y = height + y
-            alpha = int(self._config[task_key]['alpha'] / 100 * 255)
-            if color == 'auto':
-                color = get_invert_color(img, x, y, 10, 10) + (alpha,)
-            else:
-                color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
-            loc = (x, y)
-            txt_img = Image.new('RGBA', img.size, (0, 0, 0, 0))
-            draw = ImageDraw.Draw(txt_img)
-            draw.text(loc, text, fill=color, font=font_draw)
-            img.paste(txt_img, (0, 0), txt_img)
-            self.to_output(task_key, img=img, filename=output_filename)
-            return img
+        else:
+            img = input_obj.copy()
+        output_filename = self._config[task_key]['output']
+        font_draw = ImageFont.truetype(self._config[task_key]['font'], self._config[task_key]['font_size'])
+        text = self._config[task_key]['text']
+        color = self._config[task_key]['color']
+        width, height = img.size
+        x = self._config[task_key]['x']
+        y = self._config[task_key]['y']
+        if x < 0:
+            x = width + x
+        if y < 0:
+            y = height + y
+        alpha = int(self._config[task_key]['alpha'] / 100 * 255)
+        if color == 'auto':
+            color = get_invert_color(img, x, y, 10, 10) + (alpha,)
+        else:
+            color = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), alpha)
+        loc = (x, y)
+        txt_img = Image.new('RGBA', img.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(txt_img)
+        draw.text(loc, text, fill=color, font=font_draw)
+        img.paste(txt_img, (0, 0), txt_img)
+        self.to_output(task_key, img=img, filename=output_filename)
+        return img
 
     def qrcode(self, input_obj: str = None, **kwargs):
         task_key = 'qrcode'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                input_string = self._config[task_key]['input']
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                input_string = (input_obj + '.')[:-1]
-            output_filename = self._config[task_key]['output']
-            border_val = self._config[task_key]['border']
-            f_color = self._config[task_key]['fill_color']
-            b_color = self._config[task_key]['back_color']
-            qr = qrcode.QRCode(border=border_val)
-            qr.add_data(input_string)
-            qr_image = qr.make_image(fill_color=f_color, back_color=b_color)
-            self.to_output(task_key, img=qr_image, filename=output_filename)
-            return qr_image
+                input_string = self._config[task_key]['input']
+        else:
+            input_string = (input_obj + '.')[:-1]
+        output_filename = self._config[task_key]['output']
+        border_val = self._config[task_key]['border']
+        f_color = self._config[task_key]['fill_color']
+        b_color = self._config[task_key]['back_color']
+        qr = qrcode.QRCode(border=border_val)
+        qr.add_data(input_string)
+        qr_image = qr.make_image(fill_color=f_color, back_color=b_color)
+        self.to_output(task_key, img=qr_image, filename=output_filename)
+        return qr_image
 
     def decode_qrcode(self, input_obj: np.ndarray = None, **kwargs):
         task_key = 'dqrcode'
@@ -447,66 +476,94 @@ class ImageFileElf(DataFileElf):
     def from_base64(self, input_obj: str = None, **kwargs):
         task_key = 'base64'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
-                input_string = self._config[task_key]['input']
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
             else:
-                input_string = (input_obj + '.')[:-1]
-            res = base64.b64decode(input_string)
-            self.to_output(task_key, content=res)
-            return res
+                input_string = self._config[task_key]['input']
+        else:
+            input_string = (input_obj + '.')[:-1]
+        res = base64.b64decode(input_string)
+        self.to_output(task_key, content=res)
+        return res
 
     def resize(self, input_obj: Image.Image = None, **kwargs):
         task_key = 'resize'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            if input_obj is None:
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
                 input_filename = self._config[task_key]['input']
                 img_ori = Image.open(input_filename)
-            else:
-                img_ori = input_obj.copy()
-            output_filename = self._config[task_key]['output']
-            width, height = img_ori.size
-            quality = self._config[task_key]['quality']
-            dpi = self._config[task_key]['dpi']
-            if self._config[task_key]['scale']:
-                width = math.floor(width * self._config[task_key]['width'] / 100.0)
-                height = math.floor(height * self._config[task_key]['height'] / 100.0)
-            else:
-                width = self._config[task_key]['width']
-                height = self._config[task_key]['height']
-            img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
-            self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
-            return img_resize
+        else:
+            img_ori = input_obj.copy()
+        output_filename = self._config[task_key]['output']
+        width, height = img_ori.size
+        quality = self._config[task_key]['quality']
+        dpi = self._config[task_key]['dpi']
+        if self._config[task_key]['scale']:
+            width = math.floor(width * self._config[task_key]['width'] / 100.0)
+            height = math.floor(height * self._config[task_key]['height'] / 100.0)
+        else:
+            width = self._config[task_key]['width']
+            height = self._config[task_key]['height']
+        img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
+        self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
+        return img_resize
 
     def crop(self, input_obj: Image.Image = None, **kwargs):
         task_key = 'crop'
         self.set_config_by_task_key(task_key, **kwargs)
-        if self.is_default(task_key):
-            return None
-        else:
-            left = self._config[task_key]['location'][0]
-            top = self._config[task_key]['location'][1]
-            right = self._config[task_key]['location'][2]
-            bottom = self._config[task_key]['location'][3]
-            output_filename = self._config[task_key]['output']
-            mode = self._config[task_key]['mode']
-            if 1 == mode:
-                right = left + right
-                bottom = top + bottom
-            if input_obj is None:
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
                 input_filename = self._config[task_key]['input']
                 img_ori = Image.open(input_filename)
-            else:
-                img_ori = input_obj.copy()
-            if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
-                img_result = img_ori.crop((left, top, right, bottom))
-                self.to_output(task_key, img=img_result, filename=output_filename)
-                return img_result
-            else:
-                logger.warning([3004, (left, top, right, bottom)])
+        else:
+            img_ori = input_obj.copy()
+        left = self._config[task_key]['location'][0]
+        top = self._config[task_key]['location'][1]
+        right = self._config[task_key]['location'][2]
+        bottom = self._config[task_key]['location'][3]
+        output_filename = self._config[task_key]['output']
+        mode = self._config[task_key]['mode']
+        if 1 == mode:
+            right = left + right
+            bottom = top + bottom
+        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
+            img_result = img_ori.crop((left, top, right, bottom))
+            self.to_output(task_key, img=img_result, filename=output_filename)
+            return img_result
+        else:
+            logger.warning([3004, (left, top, right, bottom)])
+            return None
+
+    def mosaic(self, input_obj: np.ndarray = None, **kwargs):
+        task_key = 'mosaic'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
                 return None
+            else:
+                input_filename = self._config[task_key]['input']
+                img_ori = cv2.imread(input_filename)
+        else:
+            img_ori = input_obj.copy()
+        left = self._config[task_key]['location'][0]
+        top = self._config[task_key]['location'][1]
+        right = self._config[task_key]['location'][2]
+        bottom = self._config[task_key]['location'][3]
+        output_filename = self._config[task_key]['output']
+        mode = self._config[task_key]['mode']
+        if 1 == mode:
+            right = left + right
+            bottom = top + bottom
+        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
+            img_result = img_ori.crop((left, top, right, bottom))
+            self.to_output(task_key, img=img_result, filename=output_filename)
+            return img_result
+        else:
+            logger.warning([3005, (left, top, right, bottom)])
+            return None

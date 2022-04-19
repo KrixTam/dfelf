@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
     name='dfelf',
-    version='0.1.3',
+    version='0.1.4',
     packages=['dfelf', 'dfelf.res', 'dfelf.res.Noto_Sans_SC'],
     package_data={'dfelf': ['LICENSE', './dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf', './dfelf/res/Noto_Sans_SC/OFL.txt']},
     include_package_data=True,

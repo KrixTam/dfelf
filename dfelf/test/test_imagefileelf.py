@@ -4,6 +4,7 @@ import cv2
 from PIL import Image
 from dfelf.test.utils import get_platform
 from dfelf import ImageFileElf
+from dfelf.imagefileelf import most_used_color
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -326,6 +327,7 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.from_base64(**config))
         self.assertEqual(None, df_elf.resize(**config))
         self.assertEqual(None, df_elf.crop(**config))
+        self.assertEqual(None, df_elf.fill(**config))
 
     def test_error_splice(self):
         df_elf = ImageFileElf()
@@ -398,6 +400,67 @@ class TestImageFileElf(unittest.TestCase):
             'location': [784, 310, 385, 7],
         }
         self.assertEqual(None, df_elf.crop(**config))
+
+    def test_fill_01(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_01.png',
+            'location': [385, 7, 784, 310]
+        }
+        df_elf.fill(**config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_fill_02(self):
+        df_elf = ImageFileElf()
+        config = {
+            'output': 'fill_02.png',
+            'location': [385, 7, 784, 310]
+        }
+        input_img = cv2.imread(os.path.join(cwd, 'sources', '01.png'))
+        df_elf.fill(input_img, **config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_fill_03(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_03.png',
+            'location': [385, 7, 399, 303],
+            'mode': 1
+        }
+        df_elf.fill(**config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_fill_04(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_04.png',
+            'location': [385, 7, 784, 310],
+            'mode': 2
+        }
+        with self.assertRaises(ValueError):
+            df_elf.fill(**config)
+
+    def test_fill_05(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_05.png',
+            'location': [784, 310, 385, 7],
+        }
+        self.assertEqual(None, df_elf.fill(**config))
+
+    def test_error_most_used_color(self):
+        with self.assertRaises(TypeError):
+            most_used_color(123, 1, 1, 3, 4)
 
 
 if __name__ == '__main__':

@@ -21,12 +21,22 @@ from dfelf.res import Noto_Sans_SC
 DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
 
 
-def most_used_color(img: Image.Image, left: int, upper: int, width: int, height: int):
+def most_used_color(img, left: int, upper: int, width: int, height: int):
     right = left + width
     lower = upper + height
-    img_c = img.crop((left, upper, right, lower)).convert('RGB')
-    count_by_color = Counter(img_c.getdata())
-    return count_by_color.most_common()[0][0]
+    if isinstance(img, Image.Image):
+        img_c = img.crop((left, upper, right, lower)).convert('RGB')
+        count_by_color = Counter(img_c.getdata())
+        return count_by_color.most_common()[0][0]
+    if isinstance(img, np.ndarray):
+        img_c = img[upper:lower, left:right, :]
+        data = img_c.reshape(img_c.shape[0] * img_c.shape[1], img_c.shape[2])
+        unique, counts = np.unique(data, axis=0, return_counts=True)
+        high_freq, high_freq_element = counts.max(), unique[counts.argmax()]
+        return high_freq_element
+    else:
+        logger.warning([3006])
+        raise TypeError
 
 
 def get_invert_color(img: Image.Image, left: int, upper: int, width: int, height: int):
@@ -99,12 +109,13 @@ class ImageFileElf(DataFileElf):
                     'mode': 0,
                     'location': [0, 0, 5, 5]
                 },
-                'mosaic': {
+                'fill': {
                     'input': 'input_filename',
                     'output': 'output_filename',
                     'mode': 0,
                     'location': [0, 0, 5, 5],
-                    'unit': 5
+                    'unit': 5,
+                    'type': 'M'
                 }
             },
             'schema': {
@@ -233,7 +244,7 @@ class ImageFileElf(DataFileElf):
                             }
                         }
                     },
-                    'mosaic': {
+                    'fill': {
                         'type': 'object',
                         'properties': {
                             'input': {'type': 'string'},
@@ -252,6 +263,10 @@ class ImageFileElf(DataFileElf):
                             'unit': {
                                 'type': 'integer',
                                 'minimum': 1
+                            },
+                            'type': {
+                                'type': 'string',
+                                'pattern': '(([mM]{1})|(^#[A-Fa-f0-9]{6}))'
                             }
                         }
                     }
@@ -272,10 +287,13 @@ class ImageFileElf(DataFileElf):
                 output_filename = self.get_output_path(kwargs['filename'])
             else:
                 output_filename = self.get_log_path(kwargs['filename'])
-            if task_key == 'resize':
-                kwargs['img'].save(output_filename, quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
+            if task_key == 'fill':
+                cv2.imwrite(output_filename, kwargs['img'])
             else:
-                kwargs['img'].save(output_filename)
+                if task_key == 'resize':
+                    kwargs['img'].save(output_filename, quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
+                else:
+                    kwargs['img'].save(output_filename)
 
     def to_favicon(self, input_obj: Image.Image = None, **kwargs):
         task_key = 'favicon'
@@ -540,8 +558,8 @@ class ImageFileElf(DataFileElf):
             logger.warning([3004, (left, top, right, bottom)])
             return None
 
-    def mosaic(self, input_obj: np.ndarray = None, **kwargs):
-        task_key = 'mosaic'
+    def fill(self, input_obj: np.ndarray = None, **kwargs):
+        task_key = 'fill'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
@@ -557,11 +575,15 @@ class ImageFileElf(DataFileElf):
         bottom = self._config[task_key]['location'][3]
         output_filename = self._config[task_key]['output']
         mode = self._config[task_key]['mode']
+        unit = self._config[task_key]['unit']
         if 1 == mode:
             right = left + right
             bottom = top + bottom
-        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
-            img_result = img_ori.crop((left, top, right, bottom))
+        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.shape[1]) and (bottom <= img_ori.shape[0]):
+            img_result = img_ori.copy()
+            for x in range(left, right, unit):
+                for y in range(top, bottom, unit):
+                    img_result[y: y+unit, x: x+unit] = most_used_color(img_ori, x, y, unit, unit)
             self.to_output(task_key, img=img_result, filename=output_filename)
             return img_result
         else:

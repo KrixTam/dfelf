@@ -458,6 +458,19 @@ class TestImageFileElf(unittest.TestCase):
         }
         self.assertEqual(None, df_elf.fill(**config))
 
+    def test_fill_06(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_06.png',
+            'location': [385, 7, 784, 310],
+            'type': '#800000'
+        }
+        df_elf.fill(**config)
+        output_filename = config['output']
+        result_file = os.path.join(cwd, 'result', 'fill', 'fill_02.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
     def test_error_most_used_color(self):
         with self.assertRaises(TypeError):
             most_used_color(123, 1, 1, 3, 4)

@@ -45,6 +45,10 @@ def get_invert_color(img: Image.Image, left: int, upper: int, width: int, height
     return color
 
 
+def hex_to_rgb(hex_color: str):
+    color = hex_color.replace('#', '')
+    return int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16)
+
 class ImageFileElf(DataFileElf):
 
     def __init__(self, output_dir=None, output_flag=True):
@@ -581,9 +585,13 @@ class ImageFileElf(DataFileElf):
             bottom = top + bottom
         if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.shape[1]) and (bottom <= img_ori.shape[0]):
             img_result = img_ori.copy()
-            for x in range(left, right, unit):
-                for y in range(top, bottom, unit):
-                    img_result[y: y+unit, x: x+unit] = most_used_color(img_ori, x, y, unit, unit)
+            if len(self._config[task_key]['type']) == 1:
+                for x in range(left, right, unit):
+                    for y in range(top, bottom, unit):
+                        img_result[y: y+unit, x: x+unit] = most_used_color(img_ori, x, y, unit, unit)
+            else:
+                r, g, b = hex_to_rgb(self._config[task_key]['type'])
+                img_result[top: bottom, left: right] = [b, g, r]
             self.to_output(task_key, img=img_result, filename=output_filename)
             return img_result
         else:

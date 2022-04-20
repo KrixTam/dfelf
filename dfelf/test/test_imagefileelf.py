@@ -1,10 +1,10 @@
 import os
 import unittest
 import cv2
-from PIL import Image
-from dfelf.test.utils import get_platform
+from PIL import Image, ImageChops
 from dfelf import ImageFileElf
 from dfelf.imagefileelf import most_used_color
+import numpy as np
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -401,6 +401,20 @@ class TestImageFileElf(unittest.TestCase):
         }
         self.assertEqual(None, df_elf.crop(**config))
 
+    def test_crop_06(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'crop_06.png',
+            'location': [385, 7, 784, 310]
+        }
+        img_result = df_elf.crop(silent=True, **config)
+        output_filename = config['output']
+        self.assertFalse(os.path.exists(df_elf.get_output_path(output_filename)))
+        self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename)))
+        result_file = os.path.join(cwd, 'result', 'crop.png')
+        self.assertEqual(None, ImageChops.difference(img_result, Image.open(result_file)).getbbox())
+
     def test_fill_01(self):
         df_elf = ImageFileElf()
         config = {
@@ -470,6 +484,20 @@ class TestImageFileElf(unittest.TestCase):
         output_filename = config['output']
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_02.png')
         self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+
+    def test_fill_07(self):
+        df_elf = ImageFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', '01.png'),
+            'output': 'fill_07.png',
+            'location': [385, 7, 784, 310]
+        }
+        img_result = df_elf.fill(silent=True, **config)
+        output_filename = config['output']
+        self.assertFalse(os.path.exists(df_elf.get_output_path(output_filename)))
+        self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename)))
+        result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
+        self.assertTrue(np.array_equal(img_result, cv2.imread(result_file)))
 
     def test_error_most_used_color(self):
         with self.assertRaises(TypeError):

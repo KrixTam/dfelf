@@ -534,7 +534,7 @@ class ImageFileElf(DataFileElf):
         self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
         return img_resize
 
-    def crop(self, input_obj: Image.Image = None, **kwargs):
+    def crop(self, input_obj: Image.Image = None,  silent: bool = False, **kwargs):
         task_key = 'crop'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -556,13 +556,16 @@ class ImageFileElf(DataFileElf):
             bottom = top + bottom
         if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
             img_result = img_ori.crop((left, top, right, bottom))
-            self.to_output(task_key, img=img_result, filename=output_filename)
+            if silent:
+                pass
+            else:
+                self.to_output(task_key, img=img_result, filename=output_filename)
             return img_result
         else:
             logger.warning([3004, (left, top, right, bottom)])
             return None
 
-    def fill(self, input_obj: np.ndarray = None, **kwargs):
+    def fill(self, input_obj: np.ndarray = None, silent: bool = False, **kwargs):
         task_key = 'fill'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -592,7 +595,10 @@ class ImageFileElf(DataFileElf):
             else:
                 r, g, b = hex_to_rgb(self._config[task_key]['type'])
                 img_result[top: bottom, left: right] = [b, g, r]
-            self.to_output(task_key, img=img_result, filename=output_filename)
+            if silent:
+                pass
+            else:
+                self.to_output(task_key, img=img_result, filename=output_filename)
             return img_result
         else:
             logger.warning([3005, (left, top, right, bottom)])

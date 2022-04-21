@@ -25,6 +25,7 @@ ERROR_DEF = {
     '3004': '[{0}] 坐标数据{1}异常，无法进行裁剪处理。',
     '3005': '[{0}] 坐标数据{1}异常，无法进行马赛克处理。',
     '3006': '[{0}] most_used_color方法中的参数"img"类型错误，应为Image.Image或者numpy.ndarray。',
+    '3007': '[{0}] ImageFileElf.decode_qrcode中的参数"input_obj"类型错误，应为Image.Image或者numpy.ndarray。',
     '4000': '[{0}] PDF文件"{1}"中不存在第{2}的内容，请检查PDF原文档的内容正确性或者配置正确性。',
     '4001': '[{0}] "from_images"没有设置，请设置后重试。'
 }

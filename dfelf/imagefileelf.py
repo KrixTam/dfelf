@@ -11,6 +11,7 @@ import numpy as np
 from moment import moment
 import imghdr
 import math
+import io
 from collections import Counter
 try:
     import importlib.resources as pkg_resources
@@ -48,6 +49,7 @@ def get_invert_color(img: Image.Image, left: int, upper: int, width: int, height
 def hex_to_rgb(hex_color: str):
     color = hex_color.replace('#', '')
     return int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16)
+
 
 class ImageFileElf(DataFileElf):
 
@@ -299,7 +301,7 @@ class ImageFileElf(DataFileElf):
                 else:
                     kwargs['img'].save(output_filename)
 
-    def to_favicon(self, input_obj: Image.Image = None, **kwargs):
+    def to_favicon(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
         task_key = 'favicon'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -313,20 +315,28 @@ class ImageFileElf(DataFileElf):
         if self._config.is_default([task_key, 'size']):
             icon_sizes = [16, 24, 32, 48, 64, 128, 255]
             res = []
-            for x in icon_sizes:
-                img_resize = img.resize((x, x), Image.ANTIALIAS)
-                output_filename = 'favicon' + str(x) + '.ico'
-                self.to_output(task_key, img=img_resize, filename=output_filename)
-                res.append(img_resize)
+            if silent:
+                for x in icon_sizes:
+                    img_resize = img.resize((x, x), Image.ANTIALIAS)
+                    res.append(img_resize)
+            else:
+                for x in icon_sizes:
+                    img_resize = img.resize((x, x), Image.ANTIALIAS)
+                    output_filename = 'favicon' + str(x) + '.ico'
+                    self.to_output(task_key, img=img_resize, filename=output_filename)
+                    res.append(img_resize)
             return res
         else:
             favicon_size = self._config[task_key]['size']
             img_resize = img.resize((favicon_size, favicon_size), Image.ANTIALIAS)
-            output_filename = 'favicon' + str(favicon_size) + '.ico'
-            self.to_output(task_key, img=img_resize, filename=output_filename)
+            if silent:
+                pass
+            else:
+                output_filename = 'favicon' + str(favicon_size) + '.ico'
+                self.to_output(task_key, img=img_resize, filename=output_filename)
             return img_resize
 
-    def splice(self, input_obj: list = None, **kwargs):
+    def splice(self, input_obj: list = None, silent: bool = False, **kwargs):
         task_key = 'splice'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -365,7 +375,10 @@ class ImageFileElf(DataFileElf):
                     img = images[i]
                     loc = (gap, locations[i])
                     ret_img.paste(img, loc)
-                self.to_output(task_key, img=ret_img, filename=output_filename)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
                 return ret_img
             else:
                 height = self._config[task_key]['width']
@@ -385,13 +398,16 @@ class ImageFileElf(DataFileElf):
                     img = images[i]
                     loc = (locations[i], gap)
                     ret_img.paste(img, loc)
-                self.to_output(task_key, img=ret_img, filename=output_filename)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
                 return ret_img
         else:
             logger.warning([3000])
             return None
 
-    def watermark(self, input_obj: Image.Image = None, **kwargs):
+    def watermark(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
         task_key = 'watermark'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -423,10 +439,13 @@ class ImageFileElf(DataFileElf):
         draw = ImageDraw.Draw(txt_img)
         draw.text(loc, text, fill=color, font=font_draw)
         img.paste(txt_img, (0, 0), txt_img)
-        self.to_output(task_key, img=img, filename=output_filename)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, img=img, filename=output_filename)
         return img
 
-    def qrcode(self, input_obj: str = None, **kwargs):
+    def qrcode(self, input_obj: str = None, silent: bool = False, **kwargs):
         task_key = 'qrcode'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -443,10 +462,13 @@ class ImageFileElf(DataFileElf):
         qr = qrcode.QRCode(border=border_val)
         qr.add_data(input_string)
         qr_image = qr.make_image(fill_color=f_color, back_color=b_color)
-        self.to_output(task_key, img=qr_image, filename=output_filename)
-        return qr_image
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, img=qr_image, filename=output_filename)
+        return qr_image.get_image()
 
-    def decode_qrcode(self, input_obj: np.ndarray = None, **kwargs):
+    def decode_qrcode(self, input_obj=None, **kwargs):
         task_key = 'dqrcode'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -456,7 +478,16 @@ class ImageFileElf(DataFileElf):
                 input_filename = self._config[task_key]['input']
                 image = cv2.imread(input_filename)
         else:
-            image = input_obj.copy()
+            if isinstance(input_obj, np.ndarray):
+                image = input_obj.copy()
+            else:
+                if isinstance(input_obj, Image.Image):
+                    image = np.array(input_obj.convert('RGB'))
+                    # 将RGB转换为BGR
+                    image = image[:, :, ::-1].copy()
+                else:
+                    logger.warning([3007])
+                    raise TypeError
         detector = cv2.QRCodeDetector()
         data, vertices_array, binary_qrcode = detector.detectAndDecode(image)
         if vertices_array is None:
@@ -495,7 +526,7 @@ class ImageFileElf(DataFileElf):
             os.remove(temp_filename)
             return encoded, file_extension
 
-    def from_base64(self, input_obj: str = None, **kwargs):
+    def from_base64(self, input_obj: str = None, silent: bool = False, **kwargs):
         task_key = 'base64'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -506,10 +537,15 @@ class ImageFileElf(DataFileElf):
         else:
             input_string = (input_obj + '.')[:-1]
         res = base64.b64decode(input_string)
-        self.to_output(task_key, content=res)
-        return res
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, content=res)
+        buf = io.BytesIO(res)
+        res_img = Image.open(buf)
+        return res_img
 
-    def resize(self, input_obj: Image.Image = None, **kwargs):
+    def resize(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
         task_key = 'resize'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -531,7 +567,10 @@ class ImageFileElf(DataFileElf):
             width = self._config[task_key]['width']
             height = self._config[task_key]['height']
         img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
-        self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
         return img_resize
 
     def crop(self, input_obj: Image.Image = None,  silent: bool = False, **kwargs):

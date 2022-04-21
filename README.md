@@ -11,6 +11,8 @@
 
 所以数据文件精灵初步设计可以支持以上三类文件的日常处理需要。
 
+自v0.1.4版本开始支持*silent模式*，即不进行IO处理、不输出文件，相关方法中增加*silent*参数，默认值为*False*。
+
 ## 安装
 
 > pip install --upgrade dfelf
@@ -147,16 +149,25 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 Image文件精灵用于日常对图片类文件的处理应用。相关方法如下：
 
 * **to_favicon**：把图片转化为favicon；对应的配置设定为*favicon*。
+> ImageFileElf.to_favicon(input_obj: Image.Image = None, silent: bool = False, **kwargs)
 * **splice**：将*images*中的文件拼接为一张图片；对应的配置设定为*splice*。
+> ImageFileElf.splice(input_obj: list = None, silent: bool = False, **kwargs)
 * **watermark**：在指定的*x*、*y*坐标中增加水印文字；对应的配置设定为*watermark*。
+> ImageFileElf.watermark(input_obj: Image.Image = None, silent: bool = False, **kwargs)
 * **qrcode**：将*input*的字符串生成二维码；对应的配置设定为*qrcode*。
+> ImageFileElf.qrcode(input_obj: str = None, silent: bool = False, **kwargs)
 * **decode_qrcode**：将*input*的二维码图片解析成字符串，并返回；对应的配置设定为*dqrcode*。
+> ImageFileElf.decode_qrcode(input_obj=None, **kwargs)
 * **to_base64**：将*input*的图片转化为base64字符串，并返回；对应的配置设定为*2base64*。
+> ImageFileElf.to_base64(input_obj: bytes = None, **kwargs)
 * **from_base64**：将*input*的base64字符串转化为图片；对应的配置设定为*base64*。
+> ImageFileElf.from_base64(input_obj: str = None, silent: bool = False, **kwargs)
 * **resize**：将*input*的图片调整尺寸后输出到*output*；对应的配置设定为*resize*。
+> ImageFileElf.resize(input_obj: Image.Image = None, silent: bool = False, **kwargs)
 * **crop**：将*input*的图片按照*loaction*裁剪后输出到*output*；对应的配置设定为*crop*。当*mode*为**0**时，*location*为**left, top, right, bottom**构成的数组；当*mode*为**1**时，*location*为**left, top, width, right**构成的数组。
-
-> 注：ImageFileElf.crop自v0.1.4版本开始支持
+> ImageFileElf.crop(input_obj: Image.Image = None,  silent: bool = False, **kwargs)
+* **fill**：将*input*的图片中*loaction*的指定区域进行马赛克或者单色填充后输出到*output*；对应的配置设定为*fill*。当*mode*为**0**时，*location*为**left, top, right, bottom**构成的数组；当*mode*为**1**时，*location*为**left, top, width, right**构成的数组。*type*为填充方式，**M**或**m**表示马赛克填充，单色填充可以用*#8012de*指定到**type**中实现。
+> ImageFileElf.fill(input_obj: np.ndarray = None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 
@@ -216,9 +227,19 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
         'output': 'output_filename',
         'mode': 0,
         'location': [0, 0, 5, 5]
+    },
+    'fill': {
+        'input': 'input_filename',
+        'output': 'output_filename',
+        'mode': 0,
+        'location': [0, 0, 5, 5],
+        'unit': 5,
+        'type': 'M'
     }
 }
 ```
+
+> 注：ImageFileElf.crop和ImageFileElf.fill自v0.1.4版本开始支持
 
 ## 示例
 

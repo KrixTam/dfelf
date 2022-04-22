@@ -6,6 +6,7 @@ from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger
 from moment import moment
+from io import BytesIO
 
 
 class PDFFileElf(DataFileElf):
@@ -89,21 +90,7 @@ class PDFFileElf(DataFileElf):
                 copyfile(output_filename, output_filename_real)
         else:
             if task_key == '2image':
-                formats = {
-                    'png': 'PNG',
-                    'jpg': 'JPEG',
-                    'tif': 'TIFF'
-                }
-                output_filename_prefix = self._config[task_key]['output']
-                image_format = self._config[task_key]['format']
-                output_pages = self._config[task_key]['pages']
-                if self._output_flag:
-                    get_path = self.get_output_path
-                else:
-                    get_path = self.get_log_path
-                for i in range(len(kwargs['pages'])):
-                    output_filename = output_filename_prefix + '_' + str(output_pages[i]) + '.' + image_format
-                    kwargs['pages'][i].save(get_path(output_filename), formats[image_format])
+                kwargs['image'].save(kwargs['filename'])
             else:
                 if task_key == 'reorganize':
                     output_filename = self._config[task_key]['output']
@@ -187,7 +174,7 @@ class PDFFileElf(DataFileElf):
                 logger.warning([4001])
                 return None
 
-    def to_image(self, input_obj: PdfFileReader = None, **kwargs):
+    def to_image(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
         task_key = '2image'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -208,17 +195,33 @@ class PDFFileElf(DataFileElf):
         self.reorganize(pdf_file, **reorganize_config)
         self._output_flag = output_flag
         pages = convert_from_path(self.get_log_path(reorganize_config['output']), self._config[task_key]['dpi'])
-        self.to_output(task_key, pages=pages)
+        formats = {
+            'png': 'PNG',
+            'jpg': 'JPEG',
+            'tif': 'TIFF'
+        }
         output_filename_prefix = self._config[task_key]['output']
-        image_format = self._config[task_key]['format']
+        image_format = formats[self._config[task_key]['format']]
         output_pages = self._config[task_key]['pages']
         res = []
         if self._output_flag:
-            for page_index in output_pages:
-                output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-                res.append(self.get_output_path(output_filename))
+            get_path = self.get_output_path
         else:
-            for page_index in output_pages:
-                output_filename = output_filename_prefix + '_' + str(page_index) + '.' + image_format
-                res.append(self.get_log_path(output_filename))
+            get_path = self.get_log_path
+        if silent:
+            for i in range(len(pages)):
+                f = BytesIO()
+                pages[i].save(f, format=image_format)
+                f.seek(0)
+                img_page = Image.open(f)
+                res.append(img_page)
+        else:
+            for i in range(len(pages)):
+                output_filename = get_path(output_filename_prefix + '_' + str(output_pages[i]) + '.' + image_format)
+                f = BytesIO()
+                pages[i].save(f, format=image_format)
+                f.seek(0)
+                img_page = Image.open(f)
+                res.append(img_page)
+                self.to_output(task_key, image=img_page, filename=output_filename)
         return res

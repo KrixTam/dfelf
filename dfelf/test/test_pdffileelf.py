@@ -1,9 +1,9 @@
 import os
 import unittest
 from dfelf import PDFFileElf
-from PIL import Image
+from PIL import Image, ImageChops
 from PyPDF2.pdf import PdfFileReader
-from dfelf.commons import is_same_image, to_same_size
+from dfelf.commons import is_same_image, to_same_size, read_image
 from moment import moment
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -122,29 +122,51 @@ class TestPDFFileElf(unittest.TestCase):
         df_elf = PDFFileElf()
         config = {
             'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
-            'output': 'dp',
+            'output': 'dp_01',
             'format': 'png',
             'pages': [4, 3]
         }
         df_elf.to_image(**config)
         filename_01 = config['output'] + '_4.png'
         filename_02 = config['output'] + '_3.png'
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename_01), os.path.join(cwd, 'result', filename_01)))
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename_02), os.path.join(cwd, 'result', filename_02)))
+        result_01 = os.path.join(cwd, 'result', 'dp_4.png')
+        result_02 = os.path.join(cwd, 'result', 'dp_3.png')
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_01), result_01))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename_02), result_02))
 
     def test_2image_02(self):
         df_elf = PDFFileElf(output_flag=False)
         config = {
             'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
-            'output': 'dp',
+            'output': 'dp_02',
             'format': 'png',
             'pages': [4, 3]
         }
         df_elf.to_image(**config)
         filename_01 = config['output'] + '_4.png'
         filename_02 = config['output'] + '_3.png'
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename_01), os.path.join(cwd, 'result', filename_01)))
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename_02), os.path.join(cwd, 'result', filename_02)))
+        result_01 = os.path.join(cwd, 'result', 'dp_4.png')
+        result_02 = os.path.join(cwd, 'result', 'dp_3.png')
+        self.assertTrue(is_same_image(df_elf.get_log_path(filename_01), result_01))
+        self.assertTrue(is_same_image(df_elf.get_log_path(filename_02), result_02))
+
+    def test_2image_03(self):
+        df_elf = PDFFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', 'dive-into-python3.pdf'),
+            'output': 'dp_03',
+            'format': 'png',
+            'pages': [4, 3]
+        }
+        res = df_elf.to_image(silent=True, **config)
+        filename_01 = config['output'] + '_4.png'
+        filename_02 = config['output'] + '_3.png'
+        result_01 = os.path.join(cwd, 'result', 'dp_4.png')
+        result_02 = os.path.join(cwd, 'result', 'dp_3.png')
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename_01)))
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename_02)))
+        self.assertTrue(is_same_image(res[0], result_01))
+        self.assertTrue(is_same_image(res[1], result_02))
 
     def test_default(self):
         df_elf = PDFFileElf()
@@ -152,6 +174,10 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.reorganize(**config))
         self.assertEqual(None, df_elf.image2pdf(**config))
         self.assertEqual(None, df_elf.to_image(**config))
+
+    def test_error_read_image(self):
+        with self.assertRaises(TypeError):
+            read_image(123)
 
 
 if __name__ == '__main__':

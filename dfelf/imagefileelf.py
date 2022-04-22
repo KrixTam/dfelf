@@ -6,12 +6,12 @@ from string import Template
 from PIL import Image, ImageDraw, ImageFont
 from ni.config import Config
 from dfelf import DataFileElf
-from dfelf.commons import logger
+from dfelf.commons import logger, read_image
 import numpy as np
 from moment import moment
 import imghdr
 import math
-import io
+from io import BytesIO
 from collections import Counter
 try:
     import importlib.resources as pkg_resources
@@ -482,9 +482,7 @@ class ImageFileElf(DataFileElf):
                 image = input_obj.copy()
             else:
                 if isinstance(input_obj, Image.Image):
-                    image = np.array(input_obj.convert('RGB'))
-                    # 将RGB转换为BGR
-                    image = image[:, :, ::-1].copy()
+                    image = read_image(input_obj)
                 else:
                     logger.warning([3007])
                     raise TypeError
@@ -541,7 +539,7 @@ class ImageFileElf(DataFileElf):
             pass
         else:
             self.to_output(task_key, content=res)
-        buf = io.BytesIO(res)
+        buf = BytesIO(res)
         res_img = Image.open(buf)
         return res_img
 

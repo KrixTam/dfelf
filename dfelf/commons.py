@@ -14,6 +14,7 @@ from PIL import Image
 
 ERROR_DEF = {
     '0': '[{0}] 图像相似度不符合要求（{3}），MSE为{1}，SSIM为{2}。',
+    '1': '[{0}] read_image中的参数"image_file"类型错误，应为Image.Image或者str。',
     '1000': '[{0}] "{1}"没有设置正确（不能直接使用默认设置值），请设置后重试。',
     '2000': '[{0}] 存在需要进行去重处理的值，详细请查阅文件：{1}\n{2}',
     '2001': '[{0}] 如下重复值将被去除，详细请查阅文件：{1}\n{2}',
@@ -46,9 +47,23 @@ def is_same_image(file_1, file_2, rel_tol=0.0001, ignore_alpha=False):
         return False
 
 
+def read_image(image_file):
+    if isinstance(image_file, str):
+        return cv2.imread(image_file)
+    else:
+        if isinstance(image_file, Image.Image):
+            open_cv_image = np.array(image_file.convert('RGB'))
+            # 将RGB转换为BGR
+            open_cv_image = open_cv_image[:, :, ::-1].copy()
+            return open_cv_image
+        else:
+            logger.warning([1])
+            raise TypeError
+
+
 def mse_n_ssim(file_1, file_2):
-    img_1 = cv2.imread(file_1)
-    img_2 = cv2.imread(file_2)
+    img_1 = read_image(file_1)
+    img_2 = read_image(file_2)
     # the 'Mean Squared Error' between the two images is the
     # sum of the squared difference between the two images;
     # NOTE: the two images must have the same dimension

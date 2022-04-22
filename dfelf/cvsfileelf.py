@@ -316,7 +316,7 @@ class CSVFileElf(DataFileElf):
         content = pd.read_csv(cvs_filename, dtype=str)
         return content
 
-    def add(self, input_obj: pd.DataFrame = None, **kwargs):
+    def add(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
         task_key = 'add'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -345,10 +345,13 @@ class CSVFileElf(DataFileElf):
             df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_ori)
             for x in range(len(fields)):
                 df_ori[fields[x]].fillna(defaults[x], inplace=True)
-        self.to_output(task_key, df=df_ori)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def join(self, input_obj: pd.DataFrame = None, **kwargs):
+    def join(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
         task_key = 'join'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -365,10 +368,13 @@ class CSVFileElf(DataFileElf):
                 for key, value in file['mappings'].items():
                     df.rename(columns={key: value}, inplace=True)
             df_ori = df_ori.append(df)
-        self.to_output(task_key, df=df_ori)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def exclude(self, input_obj: pd.DataFrame = None, **kwargs):
+    def exclude(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
         task_key = 'exclude'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -423,10 +429,13 @@ class CSVFileElf(DataFileElf):
                 if '<=' == op:
                     df_ori = df_ori.loc[df_ori[key_tmp] > value].drop(columns=[key_tmp])
                     continue
-        self.to_output(task_key, df=df_ori)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def filter(self, input_obj: pd.DataFrame = None, **kwargs):
+    def filter(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
         task_key = 'filter'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -481,10 +490,13 @@ class CSVFileElf(DataFileElf):
                 if '<=' == op:
                     df_ori = df_ori.loc[df_ori[key_tmp] <= value].drop(columns=[key_tmp])
                     continue
-        self.to_output(task_key, df=df_ori)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def split(self, input_obj: pd.DataFrame = None, **kwargs):
+    def split(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
         task_key = 'split'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -501,10 +513,15 @@ class CSVFileElf(DataFileElf):
         res = []
         if key_name in columns:
             split_keys = df_ori[key_name].unique()
-            for key in split_keys:
-                tmp_df = df_ori.loc[df_ori[key_name] == key]
-                self.to_output(task_key, df=tmp_df, filename=key)
-                res.append(tmp_df)
+            if silent:
+                for key in split_keys:
+                    tmp_df = df_ori.loc[df_ori[key_name] == key]
+                    res.append(tmp_df)
+            else:
+                for key in split_keys:
+                    tmp_df = df_ori.loc[df_ori[key_name] == key]
+                    self.to_output(task_key, df=tmp_df, filename=key)
+                    res.append(tmp_df)
             return res
         else:
             raise KeyError(logger.error([2002, input_filename, key_name]))

@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import unittest
 from dfelf import CSVFileElf
+import numpy as np
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -163,6 +164,32 @@ class TestCSVFileElf(unittest.TestCase):
         dist_filename = df_elf.get_output_path(config['add']['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_add_06(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': {
+                'name': os.path.join(cwd, 'sources', 'df1.csv'),
+                'key': 'key'
+            },
+            'output': {
+                'name': 'test_add_06.csv'
+            },
+            'tags': [
+                {
+                    'name': os.path.join(cwd, 'sources', 'df5.csv'),
+                    'key': 'new_key',
+                    'fields': ['new_value'],
+                    'defaults': ['0.0']
+                }
+            ]
+        }
+        result = df_elf.add(silent=True, **config)
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        result_filename = os.path.join(cwd, 'sources', 'add.csv')
+        self.assertFalse(os.path.exists(dist_filename))
+        res = df_elf.read_content(result_filename)
+        self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
+
     def test_add_duplicates(self):
         df_elf = CSVFileElf()
         config = {
@@ -307,6 +334,28 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'result', 'exclude', 'exclude_n_lte.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_exclude_n07(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', 'df4.csv'),
+            'exclusion': [
+                {
+                    'key': 'value',
+                    'op': '=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_n_07.csv'
+            }
+        }
+        result = df_elf.exclude(silent=True, **config)
+        result_filename = os.path.join(cwd, 'result', 'exclude', 'exclude_n_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertFalse(os.path.exists(dist_filename))
+        res = df_elf.read_content(result_filename)
+        self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
 
     def test_exclude_s01(self):
         df_elf = CSVFileElf()
@@ -519,6 +568,28 @@ class TestCSVFileElf(unittest.TestCase):
             dist_filename = df_elf.get_output_path(real_filename)
             self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_split_05(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', 'products_p3.csv'),
+            'output': {
+                'prefix': 'split_05'
+            },
+            'key': 'B'
+        }
+        result = df_elf.split(silent=True, **config)
+        filenames = ['B1', 'B2', 'B3', 'B4']
+        i = 0
+        for filename in filenames:
+            real_filename = config['output']['prefix'] + '_' + filename + '.csv'
+            result_filename = 'split_' + filename + '.csv'
+            result_filename = os.path.join(cwd, 'result', 'split', result_filename)
+            dist_filename = df_elf.get_output_path(real_filename)
+            self.assertFalse(os.path.exists(dist_filename))
+            res = df_elf.read_content(result_filename)
+            self.assertTrue(np.array_equal(result[i].fillna(""), res.fillna("")))
+            i = i + 1
+
     def test_filter_n01(self):
         df_elf = CSVFileElf()
         config = {
@@ -658,6 +729,28 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'result', 'filter', 'filter_n_lte.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_filter_n08(self):
+        df_elf = CSVFileElf()
+        config = {
+            'input': os.path.join(cwd, 'sources', 'df4.csv'),
+            'filters': [
+                {
+                    'key': 'value',
+                    'op': '=',
+                    'value': 0.18012179694014036
+                }
+            ],
+            'output': {
+                'name': 'test_filter_n_08.csv'
+            }
+        }
+        result = df_elf.filter(silent=True, **config)
+        result_filename = os.path.join(cwd, 'result', 'filter', 'filter_n_=.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertFalse(os.path.exists(dist_filename))
+        res = df_elf.read_content(result_filename)
+        self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
 
     def test_filter_s01(self):
         df_elf = CSVFileElf()
@@ -824,6 +917,31 @@ class TestCSVFileElf(unittest.TestCase):
         result_filename = os.path.join(cwd, 'result', 'join.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_join_03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'base': os.path.join(cwd, 'sources', 'df4.csv'),
+            'output': {
+                'name': 'test_join_03.csv'
+            },
+            'files': [
+                {
+                    'name': os.path.join(cwd, 'sources', 'df3.csv'),
+                    'mappings': {'new_value': 'value'}
+                },
+                {
+                    'name': os.path.join(cwd, 'sources', 'df2.csv'),
+                    'mappings': {}
+                }
+            ]
+        }
+        result = df_elf.join(silent=True, **config)
+        result_filename = os.path.join(cwd, 'result', 'join.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertFalse(os.path.exists(dist_filename))
+        res = df_elf.read_content(result_filename)
+        self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
 
     def test_default(self):
         df_elf = CSVFileElf()

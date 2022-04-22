@@ -57,10 +57,15 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 
 * **add**：将*tags*下定义的*csv*文件，按照*key*进行匹配，补充相关字段到*base*的*csv*文件中；对应的配置设定为*add*。
+> CSVFileElf.add(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 * **join**：将*files*下定义的*csv*文件，拼接到*base*的*csv*文件中；对应的配置设定为*join*。
+> CSVFileElf.join(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 * **exclude**：根据*exclusion*下定义的条件（*op*支持的操作有：'=', '!=', '>', '>=', '<=', '<'），对*input*的*csv*文件内容进行剔除处理；对应的配置设定为*exclude*。
+> CSVFileElf.exclude(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 * **filter**：根据*filters*下定义的条件（*op*支持的操作有：'=', '!=', '>', '>=', '<=', '<'），对*input*的*csv*文件内容进行筛选处理；对应的配置设定为*filter*。
+> CSVFileElf.filter(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 * **split**：根据*key*对*input*的*csv*文件进行拆解处理；对应的配置设定为*split*。
+> CSVFileElf.split(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 

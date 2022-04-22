@@ -83,11 +83,15 @@ class PDFFileElf(DataFileElf):
 
     def to_output(self, task_key, **kwargs):
         if task_key == 'image2pdf':
-            output_filename = self.get_log_path(self._config[task_key]['output'])
-            kwargs['first_image'].save(output_filename, save_all=True, append_images=kwargs['append_images'])
             if self._output_flag:
-                output_filename_real = self.get_output_path(self._config[task_key]['output'])
-                copyfile(output_filename, output_filename_real)
+                get_path = self.get_output_path
+            else:
+                get_path = self.get_log_path
+            output_filename = get_path(self._config[task_key]['output'])
+            kwargs['first_image'].save(output_filename, save_all=True, append_images=kwargs['append_images'])
+            # if self._output_flag:
+            #     output_filename_real = self.get_output_path(self._config[task_key]['output'])
+            #     copyfile(output_filename, output_filename_real)
         else:
             if task_key == '2image':
                 kwargs['image'].save(kwargs['filename'])
@@ -132,7 +136,7 @@ class PDFFileElf(DataFileElf):
         res = PdfFileReader(input_stream_res)
         return res
 
-    def image2pdf(self, input_obj: list = None, **kwargs):
+    def image2pdf(self, input_obj: list = None, silent: bool = False, **kwargs):
         task_key = 'image2pdf'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -147,12 +151,6 @@ class PDFFileElf(DataFileElf):
                     for i in range(1, num_filenames):
                         image = Image.open(image_filenames[i]).convert('RGB')
                         image_list.append(image)
-                    self.to_output(task_key, first_image=image_0, append_images=image_list)
-                    # 从log目录中生成返回对象
-                    output_filename = self.get_log_path(self._config[task_key]['output'])
-                    input_stream = open(output_filename, 'rb')
-                    pdf_file = PdfFileReader(input_stream)
-                    return pdf_file
                 else:
                     logger.warning([4001])
                     return None
@@ -164,15 +162,18 @@ class PDFFileElf(DataFileElf):
                 for i in range(1, num_filenames):
                     image = input_obj[i].copy().convert('RGB')
                     image_list.append(image)
-                self.to_output(task_key, first_image=image_0, append_images=image_list)
-                # 从log目录中生成返回对象
-                output_filename = self.get_log_path(self._config[task_key]['output'])
-                input_stream = open(output_filename, 'rb')
-                pdf_file = PdfFileReader(input_stream)
-                return pdf_file
             else:
                 logger.warning([4001])
                 return None
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, first_image=image_0, append_images=image_list)
+        buf = BytesIO()
+        image_0.save(buf, format='PDF', save_all=True, append_images=image_list)
+        buf.seek(0)
+        pdf_file = PdfFileReader(buf)
+        return pdf_file
 
     def to_image(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
         task_key = '2image'
@@ -210,18 +211,18 @@ class PDFFileElf(DataFileElf):
             get_path = self.get_log_path
         if silent:
             for i in range(len(pages)):
-                f = BytesIO()
-                pages[i].save(f, format=image_format)
-                f.seek(0)
-                img_page = Image.open(f)
+                buf = BytesIO()
+                pages[i].save(buf, format=image_format)
+                buf.seek(0)
+                img_page = Image.open(buf)
                 res.append(img_page)
         else:
             for i in range(len(pages)):
                 output_filename = get_path(output_filename_prefix + '_' + str(output_pages[i]) + '.' + image_format)
-                f = BytesIO()
-                pages[i].save(f, format=image_format)
-                f.seek(0)
-                img_page = Image.open(f)
+                buf = BytesIO()
+                pages[i].save(buf, format=image_format)
+                buf.seek(0)
+                img_page = Image.open(buf)
                 res.append(img_page)
                 self.to_output(task_key, image=img_page, filename=output_filename)
         return res

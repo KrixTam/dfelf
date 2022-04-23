@@ -4,6 +4,7 @@ from dfelf import PDFFileElf
 from PIL import Image, ImageChops
 from PyPDF2.pdf import PdfFileReader
 from dfelf.commons import is_same_image, to_same_size, read_image
+from dfelf.pdffileelf import is_same_pdf
 from moment import moment
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -29,8 +30,10 @@ class TestPDFFileElf(unittest.TestCase):
         input_stream = open(input_filename, 'rb')
         input_pdf = PdfFileReader(input_stream)
         df_elf.reorganize(input_pdf, **config_02)
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename_01)), 'fd4c80a337f4599435b2ab31383a4b18')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename_02)), '6dedf93bf8afccb5dc2fbd8ea60e6989')
+        result_filename_01 = os.path.join(cwd, 'sources', output_filename_01)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_01), result_filename_01))
+        result_filename_02 = os.path.join(cwd, 'sources', output_filename_02)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_02), result_filename_02))
 
     def test_generate_config_file(self):
         df_elf = PDFFileElf()

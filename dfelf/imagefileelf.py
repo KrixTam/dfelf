@@ -8,7 +8,6 @@ from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger, read_image
 import numpy as np
-from moment import moment
 import imghdr
 import math
 from io import BytesIO
@@ -509,19 +508,17 @@ class ImageFileElf(DataFileElf):
                     encoded = base64.b64encode(fh.read()).decode('ascii')
                     if self._config[task_key]['css_format']:
                         encoded = template.substitute(extension=file_extension, base64=encoded)
-                    logger.info([3003, encoded])
+                    logger.info([3003, input_filename])
                     return encoded, file_extension
         else:
-            temp_filename = self.get_log_path(str(moment().unix_timestamp()) + '.ime')
-            fw = open(temp_filename, 'wb')
-            fw.write(input_obj)
-            fw.close()
-            file_extension = imghdr.what(temp_filename)
+            buf = BytesIO(input_obj)
+            buf.seek(0)
+            file_extension = imghdr.what(buf)
+            buf.close()
             encoded = base64.b64encode(input_obj).decode('ascii')
             if self._config[task_key]['css_format']:
                 encoded = template.substitute(extension=file_extension, base64=encoded)
-            logger.info([3003, encoded])
-            os.remove(temp_filename)
+            logger.info([3003, '<内存对象>'])
             return encoded, file_extension
 
     def from_base64(self, input_obj: str = None, silent: bool = False, **kwargs):

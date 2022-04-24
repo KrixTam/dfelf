@@ -12,7 +12,7 @@ cwd = os.path.abspath(os.path.dirname(__file__))
 
 class TestPDFFileElf(unittest.TestCase):
 
-    def test_reorganize(self):
+    def test_reorganize_01(self):
         df_elf = PDFFileElf()
         output_filename_01 = 'dive-into-python3-part.pdf'
         output_filename_02 = 'dive-into-python3-part-02.pdf'
@@ -30,10 +30,37 @@ class TestPDFFileElf(unittest.TestCase):
         input_stream = open(input_filename, 'rb')
         input_pdf = PdfFileReader(input_stream)
         df_elf.reorganize(input_pdf, **config_02)
-        result_filename_01 = os.path.join(cwd, 'sources', output_filename_01)
+        input_stream.close()
+        result_filename_01 = os.path.join(cwd, 'result', 'pdf', output_filename_01)
         self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_01), result_filename_01))
-        result_filename_02 = os.path.join(cwd, 'sources', output_filename_02)
+        result_filename_02 = os.path.join(cwd, 'result', 'pdf', output_filename_02)
         self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_02), result_filename_02))
+
+    def test_reorganize_02(self):
+        df_elf = PDFFileElf()
+        df_elf.shutdown_output()
+        output_filename_01 = 'dive-into-python3-part.pdf'
+        output_filename_02 = 'dive-into-python3-part-02.pdf'
+        input_filename = os.path.join(cwd, 'sources', 'dive-into-python3.pdf')
+        config_01 = {
+            'input': input_filename,
+            'output': output_filename_01,
+            'pages': [2, 3, 499]
+        }
+        df_elf.reorganize(**config_01)
+        config_02 = {
+            'output': output_filename_02,
+            'pages': [3, 2]
+        }
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        pdf_02 = df_elf.reorganize(input_pdf, True, **config_02)
+        input_stream.close()
+        result_filename_01 = os.path.join(cwd, 'result', 'pdf', output_filename_01)
+        self.assertTrue(is_same_pdf(df_elf.get_log_path(output_filename_01), result_filename_01))
+        result_filename_02 = os.path.join(cwd, 'result', 'pdf', output_filename_02)
+        self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename_02)))
+        self.assertTrue(is_same_pdf(pdf_02, result_filename_02))
 
     def test_generate_config_file(self):
         df_elf = PDFFileElf()
@@ -207,6 +234,36 @@ class TestPDFFileElf(unittest.TestCase):
         with self.assertRaises(TypeError):
             read_image(123)
 
+    def test_is_same_pdf_01(self):
+        with self.assertRaises(TypeError):
+            is_same_pdf(123, 345)
+
+    def test_is_same_pdf_02(self):
+        with self.assertRaises(TypeError):
+            is_same_pdf(os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'), 345)
+
+    def test_is_same_pdf_03(self):
+        file_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        stream_01 = open(file_01, 'rb')
+        pdf_01 = PdfFileReader(stream_01, strict=False)
+        file_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part-02.pdf')
+        stream_02 = open(file_02, 'rb')
+        pdf_02 = PdfFileReader(stream_02, strict=False)
+        self.assertFalse(is_same_pdf(pdf_01, pdf_02))
+        stream_01.close()
+        stream_02.close()
+
+    def test_is_same_pdf_04(self):
+        file_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        stream_01 = open(file_01, 'rb')
+        pdf_01 = PdfFileReader(stream_01, strict=False)
+        file_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part-02-3.pdf')
+        stream_02 = open(file_02, 'rb')
+        pdf_02 = PdfFileReader(stream_02, strict=False)
+        self.assertFalse(is_same_pdf(pdf_01, pdf_02))
+        stream_01.close()
+        stream_02.close()
+
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()  # pragma: no cover

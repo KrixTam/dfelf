@@ -14,6 +14,8 @@ def is_same_pdf(file_1, file_2, ext: str = 'png', dpi: int = 300):
         'dpi': dpi,
         'pages': []
     }
+    stream_1 = None
+    stream_2 = None
     if isinstance(file_1, PdfFileReader):
         pdf_1 = file_1
     else:
@@ -167,12 +169,14 @@ class PDFFileElf(DataFileElf):
                 res_output.addPage(pdf_file.getPage(page - 1))
             else:
                 logger.warning([4000, input_filename, page])
-        self.to_output(task_key, pdf_writer=output)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, pdf_writer=output)
         if input_obj is None:
             pdf_file.stream.close()
         buf = BytesIO()
         res_output.write(buf)
-
         buf.seek(0)
         res = PdfFileReader(buf)
         return res

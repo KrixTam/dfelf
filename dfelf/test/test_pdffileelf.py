@@ -229,6 +229,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.reorganize(**config))
         self.assertEqual(None, df_elf.image2pdf(**config))
         self.assertEqual(None, df_elf.to_image(**config))
+        self.assertEqual(None, df_elf.merge(**config))
 
     def test_error_read_image(self):
         with self.assertRaises(TypeError):
@@ -263,6 +264,38 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertFalse(is_same_pdf(pdf_01, pdf_02))
         stream_01.close()
         stream_02.close()
+
+    def test_merge_01(self):
+        df_elf = PDFFileElf()
+        input_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        input_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part-02.pdf')
+        output_filename = 'dive-into-python3-part.merge.pdf'
+        config = {
+            'input': [input_01, input_02],
+            'output': output_filename
+        }
+        df_elf.merge(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', output_filename)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
+
+    def test_merge_02(self):
+        df_elf = PDFFileElf()
+        input_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        input_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part-02.pdf')
+        output_filename = 'dive-into-python3-part.merge.pdf'
+        input_files = []
+        input_stream = open(input_01, 'rb')
+        pdf_file = PdfFileReader(input_stream, strict=False)
+        input_files.append(pdf_file)
+        input_stream = open(input_02, 'rb')
+        pdf_file = PdfFileReader(input_stream, strict=False)
+        input_files.append(pdf_file)
+        config = {
+            'output': output_filename
+        }
+        res = df_elf.merge(input_files, True, **config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', output_filename)
+        self.assertTrue(is_same_pdf(res, result_filename))
 
 
 if __name__ == '__main__':

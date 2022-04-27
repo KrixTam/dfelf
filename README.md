@@ -31,6 +31,8 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > PDFFileElf.image2pdf(input_obj: list = None, silent: bool = False, **kwargs)
 * **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*2image*。
 > PDFFileElf.to_image(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+* **merge**：将PDF文件按顺序合并为一个PDF文件；对应的配置设定为*merge*。
+> PDFFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 
@@ -51,11 +53,18 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
         'format': 'png',
         'dpi': 200,
         'pages': [1]
+    },
+    'merge': {
+        'input': [],
+        'output': 'output_filename'
     }
 }
 ```
 
-> 注：PDFFileElf.to_image自v0.1.4版本开始，若**pages**设置为“&#91; &#93;”（空列表），表示全量输出，即把整个PDF文件的每一页都输出为图片。
+> - 自v0.1.4版本开始，PDFFileElf.to_image中的**pages**设置为“&#91; &#93;”（空列表），表示全量输出，即把整个PDF文件的每一页都输出为图片。
+> 
+> - 自v0.1.5版本开始，支持PDFFileElf.merge
+> 
 
 ## CSVFileElf
 

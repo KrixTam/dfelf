@@ -76,6 +76,10 @@ class PDFFileElf(DataFileElf):
                     'format': 'png',
                     'dpi': 200,
                     'pages': [1]
+                },
+                'merge': {
+                    'input': [],
+                    'output': 'output_filename'
                 }
             },
             'schema': {
@@ -118,6 +122,14 @@ class PDFFileElf(DataFileElf):
                                 'items': {'type': 'integer'}
                             }
                         }
+                    },
+                    'merge': {
+                        'input': {
+                            'type': 'array',
+                            'minItems': 2,
+                            'items': {'type': 'string'}
+                        },
+                        'output': {'type': 'string'}
                     }
                 }
             }
@@ -135,15 +147,14 @@ class PDFFileElf(DataFileElf):
             if task_key == '2image':
                 kwargs['image'].save(kwargs['filename'])
             else:
-                if task_key == 'reorganize':
-                    if self._output_flag:
-                        get_path = self.get_output_path
-                    else:
-                        get_path = self.get_log_path
-                    output_filename = get_path(self._config[task_key]['output'])
-                    output_stream = open(output_filename, 'wb')
-                    kwargs['pdf_writer'].write(output_stream)
-                    output_stream.close()
+                if self._output_flag:
+                    get_path = self.get_output_path
+                else:
+                    get_path = self.get_log_path
+                output_filename = get_path(self._config[task_key]['output'])
+                output_stream = open(output_filename, 'wb')
+                kwargs['pdf_writer'].write(output_stream)
+                output_stream.close()
 
     def reorganize(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
         task_key = 'reorganize'
@@ -279,4 +290,41 @@ class PDFFileElf(DataFileElf):
                 img_page = Image.open(buf)
                 res.append(img_page)
                 self.to_output(task_key, image=img_page, filename=output_filename)
+        return res
+
+    def merge(self, input_obj: list = None, silent: bool = False, **kwargs):
+        task_key = 'merge'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                input_filenames = self._config[task_key]['input']
+                input_files = []
+                for i in range(len(input_filenames)):
+                    input_filename = input_filenames[i]
+                    input_stream = open(input_filename, 'rb')
+                    pdf_file = PdfFileReader(input_stream, strict=False)
+                    input_files.append(pdf_file)
+        else:
+            input_files = input_obj
+        output = PdfFileWriter()
+        res_output = PdfFileWriter()
+        for i in range(len(input_files)):
+            pdf_file = input_files[i]
+            pdf_pages = pdf_file.getNumPages()
+            for page_index in range(pdf_pages):
+                output.addPage(pdf_file.getPage(page_index))
+                res_output.addPage(pdf_file.getPage(page_index))
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, pdf_writer=output)
+        if input_obj is None:
+            for pdf_file in input_files:
+                pdf_file.stream.close()
+        buf = BytesIO()
+        res_output.write(buf)
+        buf.seek(0)
+        res = PdfFileReader(buf)
         return res

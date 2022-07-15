@@ -230,6 +230,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.image2pdf(**config))
         self.assertEqual(None, df_elf.to_image(**config))
         self.assertEqual(None, df_elf.merge(**config))
+        self.assertEqual(None, df_elf.remove(**config))
 
     def test_error_read_image(self):
         with self.assertRaises(TypeError):
@@ -296,6 +297,54 @@ class TestPDFFileElf(unittest.TestCase):
         res = df_elf.merge(input_files, True, **config)
         result_filename = os.path.join(cwd, 'result', 'pdf', output_filename)
         self.assertTrue(is_same_pdf(res, result_filename))
+
+    def test_remove_01(self):
+        df_elf = PDFFileElf()
+        output_filename_01 = 'dive-into-python3-part_remove_01_01.pdf'
+        output_filename_02 = 'dive-into-python3-part_remove_01_02.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config_01 = {
+            'input': input_filename,
+            'output': output_filename_01,
+            'pages': [3, 4, 499]
+        }
+        df_elf.remove(**config_01)
+        config_02 = {
+            'output': output_filename_02,
+            'pages': [4, 3]
+        }
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        df_elf.remove(input_pdf, **config_02)
+        input_stream.close()
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_01), result_filename))
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_02), result_filename))
+
+    def test_remove_02(self):
+        df_elf = PDFFileElf()
+        df_elf.shutdown_output()
+        output_filename_01 = 'dive-into-python3-part_remove_02_01.pdf'
+        output_filename_02 = 'dive-into-python3-part_remove_02_02.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config_01 = {
+            'input': input_filename,
+            'output': output_filename_01,
+            'pages': [3, 4, 499]
+        }
+        df_elf.remove(**config_01)
+        config_02 = {
+            'output': output_filename_02,
+            'pages': [4, 3]
+        }
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        pdf_02 = df_elf.remove(input_pdf, True, **config_02)
+        input_stream.close()
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        self.assertTrue(is_same_pdf(df_elf.get_log_path(output_filename_01), result_filename))
+        self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename_02)))
+        self.assertTrue(is_same_pdf(pdf_02, result_filename))
 
 
 if __name__ == '__main__':

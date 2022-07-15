@@ -80,6 +80,11 @@ class PDFFileElf(DataFileElf):
                 'merge': {
                     'input': [],
                     'output': 'output_filename'
+                },
+                'remove': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'pages': [1]
                 }
             },
             'schema': {
@@ -130,6 +135,18 @@ class PDFFileElf(DataFileElf):
                             'items': {'type': 'string'}
                         },
                         'output': {'type': 'string'}
+                    },
+                    'remove': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'integer'},
+                                'minItems': 1
+                            }
+                        }
                     }
                 }
             }
@@ -323,6 +340,41 @@ class PDFFileElf(DataFileElf):
         if input_obj is None:
             for pdf_file in input_files:
                 pdf_file.stream.close()
+        buf = BytesIO()
+        res_output.write(buf)
+        buf.seek(0)
+        res = PdfFileReader(buf)
+        return res
+
+    def remove(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+        task_key = 'remove'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                input_filename = self._config[task_key]['input']
+                input_stream = open(input_filename, 'rb')
+                pdf_file = PdfFileReader(input_stream)
+        else:
+            input_filename = '<内存对象>'
+            pdf_file = input_obj
+        pages = self._config[task_key]['pages']
+        output = PdfFileWriter()
+        res_output = PdfFileWriter()
+        pdf_pages_len = pdf_file.getNumPages()
+        for page in range(pdf_pages_len):
+            if (page + 1) in pages:
+                pass
+            else:
+                output.addPage(pdf_file.getPage(page))
+                res_output.addPage(pdf_file.getPage(page))
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, pdf_writer=output)
+        if input_obj is None:
+            pdf_file.stream.close()
         buf = BytesIO()
         res_output.write(buf)
         buf.seek(0)

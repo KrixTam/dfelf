@@ -1,3 +1,4 @@
+import PyPDF2.generic
 from PIL import Image
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 from pdf2image import convert_from_bytes
@@ -5,6 +6,10 @@ from ni.config import Config
 from dfelf import DataFileElf
 from dfelf.commons import logger, is_same_image
 from io import BytesIO
+import shutil
+import struct
+
+HEX_REG = '{0:0{1}x}'
 
 
 def is_same_pdf(file_1, file_2, ext: str = 'png', dpi: int = 300):
@@ -85,6 +90,11 @@ class PDFFileElf(DataFileElf):
                     'input': 'input_filename',
                     'output': 'output_filename',
                     'pages': [1]
+                },
+                'extract_images': {
+                    'input': 'input_filename',
+                    'output': 'output_filename_prefix',
+                    'pages': [1]
                 }
             },
             'schema': {
@@ -145,6 +155,17 @@ class PDFFileElf(DataFileElf):
                                 'type': 'array',
                                 'items': {'type': 'integer'},
                                 'minItems': 1
+                            }
+                        }
+                    },
+                    'extract_images': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'integer'}
                             }
                         }
                     }
@@ -379,4 +400,108 @@ class PDFFileElf(DataFileElf):
         res_output.write(buf)
         buf.seek(0)
         res = PdfFileReader(buf)
+        return res
+
+    def extract_images(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+        task_key = 'extract_images'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                input_filename = self._config[task_key]['input']
+                input_stream = open(input_filename, 'rb')
+                pdf_file = PdfFileReader(input_stream)
+        else:
+            input_filename = '<内存对象>'
+            pdf_file = input_obj
+        pages = []
+        pdf_pages_len = len(self._config[task_key]['pages'])
+        if pdf_pages_len == 0:
+            pdf_pages_len = pdf_file.getNumPages()
+            for page in range(pdf_pages_len):
+                pages.append(pdf_file.getPage(page))
+        else:
+            for index in range(pdf_pages_len):
+                pages.append(pdf_file.getPage(self._config[task_key]['pages'][index] - 1))
+        count = 1
+        filenames = []
+        prefix = self._config[task_key]['output']
+        for page in pages:
+            # Images are part of a page's `/Resources/XObject`
+            r = page['/Resources']
+            if '/XObject' not in r:
+                continue
+            for k, v in r['/XObject'].items():
+                vobj = v.getObject()
+                if vobj['/Subtype'] != '/Image' or '/Filter' not in vobj:  # pragma: no cover
+                    continue
+                if vobj['/Filter'] == '/FlateDecode':
+                    mode = 'RGB'
+                    buf = vobj.getData()
+                    size = tuple(map(int, (vobj['/Width'], vobj['/Height'])))
+                    if vobj['/ColorSpace'] == '/DeviceRGB':
+                        mode = 'RGB'
+                    elif vobj['/ColorSpace'] == '/DeviceCMYK':  # pragma: no cover
+                        # 以下未经验证
+                        mode = 'CMYK'
+                    elif vobj['/ColorSpace'] == '/DeviceGray':  # pragma: no cover
+                        # 以下未经验证
+                        mode = 'P'
+                    elif isinstance(vobj['/ColorSpace'], PyPDF2.generic.ArrayObject):
+                        if vobj['/ColorSpace'][0] == '/ICCBased':
+                            if vobj['/ColorSpace'][1].getObject().getData().find(b'RGB') > 0:
+                                mode = 'RGB'
+                            elif vobj['/ColorSpace'][1].getObject().getData().find(b'GRAY') > 0:  # pragma: no cover
+                                mode = 'L'
+                            elif vobj['/ColorSpace'][1].getObject().getData().find(b'CMYK') > 0:  # pragma: no cover
+                                # 以下未经验证
+                                mode = 'CMYK'
+                    img = Image.frombytes(mode, size, buf, decoder_name='raw')
+                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.png')
+                    img.save(filename)
+                    filenames.append(filename)
+                    count = count + 1
+                elif vobj['/Filter'] == '/DCTDecode':
+                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.jpg')
+                    img = open(filename, 'wb')
+                    img.write(vobj._data)
+                    img.close()
+                    filenames.append(filename)
+                    count = count + 1
+                elif vobj['/Filter'] == '/JPXDecode':
+                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.jp2')
+                    img = open(filename, 'wb')
+                    img.write(vobj._data)
+                    img.close()
+                    filenames.append(filename)
+                    count = count + 1
+                elif vobj['/Filter'] == '/CCITTFaxDecode':  # pragma: no cover
+                    # 以下未经验证，待有需要再支持
+                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tiff')
+                    img = open(filename, 'wb')
+                    img.write(vobj.getData())
+                    img.close()
+                    filenames.append(filename)
+                    count = count + 1
+                elif vobj['/Filter'] == '/LZWDecode':  # pragma: no cover
+                    # 以下未经验证，待有需要再支持
+                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tif')
+                    img = open(filename, 'wb')
+                    img.write(vobj.getData())
+                    img.close()
+                    filenames.append(filename)
+                    count = count + 1
+        res = []
+        if silent or (not self._output_flag):
+            for filename in filenames:
+                image = Image.open(filename)
+                res.append(image)
+        else:
+            base_log_path = self.get_log_path('')
+            for filename in filenames:
+                real_filename = self.get_output_path(filename.replace(base_log_path, ''))
+                shutil.move(filename, real_filename)
+                image = Image.open(real_filename)
+                res.append(image)
         return res

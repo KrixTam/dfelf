@@ -35,6 +35,8 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > PDFFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
 * **remove**：将PDF文件中指定的页面删除后输出PDF文件；对应的配置设定为*remove*。
 > PDFFileElf.remove(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+* **extract_images**：将PDF文件中指定的页面或整个PDF文件（当*pages*配置为空*list*时，表示整个PDF文件）的图片进行提取；对应的配置设定为*extract_images*。
+> PDFFileElf.extract_images(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 
@@ -64,6 +66,11 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
         'input': 'input_filename',
         'output': 'output_filename',
         'pages': [1]
+    },
+    'extract_images': {
+        'input': 'input_filename',
+        'output': 'output_filename_prefix',
+        'pages': [1]
     }
 }
 ```
@@ -72,7 +79,9 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > 
 > - 自v0.1.5版本开始，支持PDFFileElf.merge
 > 
-> - 自v0.1.6版本开始，支持PDFFileElf.remove
+> - 自v0.1.6版本开始，支持PDFFileElf.remove和PDFFileElf.extract_images
+> 
+> 对于PDFFileElf.extract_images的*pages*配置，若为空list，即"**\[ \]**"，表示对整个文件的图片进行提取。
 > 
 
 ## CSVFileElf

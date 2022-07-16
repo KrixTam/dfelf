@@ -231,6 +231,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.to_image(**config))
         self.assertEqual(None, df_elf.merge(**config))
         self.assertEqual(None, df_elf.remove(**config))
+        self.assertEqual(None, df_elf.extract_images(**config))
 
     def test_error_read_image(self):
         with self.assertRaises(TypeError):
@@ -345,6 +346,82 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertTrue(is_same_pdf(df_elf.get_log_path(output_filename_01), result_filename))
         self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename_02)))
         self.assertTrue(is_same_pdf(pdf_02, result_filename))
+
+    def test_extract_images_01(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.jp2.pdf')
+        config = {
+            'input': input_filename,
+            'output': 'extract_images_01_',
+            'pages': []
+        }
+        images = df_elf.extract_images(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.jp2')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(config['output'] + '000001.jp2')), df_elf.checksum(result_filename))
+
+    def test_extract_images_02(self):
+        df_elf = PDFFileElf()
+        df_elf.shutdown_output()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.jpg.pdf')
+        config = {
+            'input': input_filename,
+            'output': 'extract_images_02_'
+        }
+        images = df_elf.extract_images(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.jpg')
+        self.assertEqual(df_elf.checksum(df_elf.get_log_path(config['output'] + '000001.jpg')), df_elf.checksum(result_filename))
+
+    def test_extract_images_03(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.png.pdf')
+        config = {
+            'output': 'extract_images_03_',
+            'pages': []
+        }
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        images = df_elf.extract_images(input_pdf, **config)
+        input_stream.close()
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.png')
+        self.assertTrue(is_same_image(df_elf.get_output_path(config['output'] + '000001.png'), result_filename))
+
+    def test_extract_images_04(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.tif.pdf')
+        config = {
+            'input': input_filename,
+            'output': 'extract_images_04_',
+            'pages': []
+        }
+        images = df_elf.extract_images(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.tif')
+        self.assertTrue(is_same_image(df_elf.get_output_path(config['output'] + '000001.png'), result_filename))
+
+    def test_extract_images_05(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.tiff.pdf')
+        config = {
+            'input': input_filename,
+            'output': 'extract_images_05_',
+            'pages': []
+        }
+        images = df_elf.extract_images(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.tiff')
+        self.assertTrue(is_same_image(df_elf.get_output_path(config['output'] + '000001.png'), result_filename))
+
+    def test_extract_images_06(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.png.02.pdf')
+        config = {
+            'output': 'extract_images_06_',
+            'pages': []
+        }
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        images = df_elf.extract_images(input_pdf, True, **config)
+        input_stream.close()
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.02.png')
+        self.assertTrue(is_same_image(df_elf.get_log_path(config['output'] + '000001.png'), result_filename))
 
 
 if __name__ == '__main__':

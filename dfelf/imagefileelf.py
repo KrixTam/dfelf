@@ -65,7 +65,7 @@ class ImageFileElf(DataFileElf):
                 },
                 'splice': {
                     'output': 'output_filename',
-                    'images': [],
+                    'input': [],
                     'width': 700,
                     'gap': 5,
                     'mode': 'v'
@@ -137,7 +137,7 @@ class ImageFileElf(DataFileElf):
                         'type': 'object',
                         'properties': {
                             'output': {'type': 'string'},
-                            'images': {
+                            'input': {
                                 'type': 'array',
                                 'items': {'type': 'string'}
                             },
@@ -145,7 +145,7 @@ class ImageFileElf(DataFileElf):
                             'gap': {'type': 'number'},
                             'mode': {
                                 'type': 'string',
-                                'pattern': '[vVhH]{1}'
+                                'pattern': '[aA]?[vVhH]{1}'
                             }
                         }
                     },
@@ -342,10 +342,10 @@ class ImageFileElf(DataFileElf):
             if self.is_default(task_key):
                 return None
             else:
-                num_img = len(self._config[task_key]['images'])
+                num_img = len(self._config[task_key]['input'])
                 input_images = []
                 for i in range(num_img):
-                    filename = self._config[task_key]['images'][i]
+                    filename = self._config[task_key]['input'][i]
                     img = Image.open(filename)
                     input_images.append(img)
         else:
@@ -379,7 +379,7 @@ class ImageFileElf(DataFileElf):
                 else:
                     self.to_output(task_key, img=ret_img, filename=output_filename)
                 return ret_img
-            else:
+            elif self._config[task_key]['mode'].lower() == 'h':
                 height = self._config[task_key]['width']
                 width_img = gap
                 height_img = 2 * gap + height
@@ -395,6 +395,52 @@ class ImageFileElf(DataFileElf):
                 ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
                 for i in range(num_img):
                     img = images[i]
+                    loc = (locations[i], gap)
+                    ret_img.paste(img, loc)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+            elif self._config[task_key]['mode'].lower() == 'av':
+                y = gap
+                locations.append(y)
+                width_img = 2 * gap
+                max_width = 0
+                for i in range(num_img):
+                    img = input_images[i]
+                    if img.size[0] > max_width:
+                        max_width = img.size[0]
+                    y = y + img.size[1] + gap
+                    locations.append(y)
+                width_img = width_img + max_width
+                height_img = y
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = input_images[i]
+                    loc = (gap, locations[i])
+                    ret_img.paste(img, loc)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+            elif self._config[task_key]['mode'].lower() == 'ah':
+                x = gap
+                locations.append(x)
+                height_img = 2 * gap
+                max_height = 0
+                for i in range(num_img):
+                    img = input_images[i]
+                    if img.size[1] > max_height:
+                        max_height = img.size[1]
+                    x = x + img.size[0] + gap
+                    locations.append(x)
+                height_img = height_img + max_height
+                width_img = x
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = input_images[i]
                     loc = (locations[i], gap)
                     ret_img.paste(img, loc)
                 if silent:

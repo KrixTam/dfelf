@@ -7,7 +7,6 @@ from dfelf import DataFileElf
 from dfelf.commons import logger, is_same_image
 from io import BytesIO
 import shutil
-import struct
 
 HEX_REG = '{0:0{1}x}'
 
@@ -437,6 +436,7 @@ class PDFFileElf(DataFileElf):
                 if vobj['/Subtype'] != '/Image' or '/Filter' not in vobj:  # pragma: no cover
                     continue
                 if vobj['/Filter'] == '/FlateDecode':
+                    # 有关mode的说明参见https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
                     mode = 'RGB'
                     buf = vobj.getData()
                     size = tuple(map(int, (vobj['/Width'], vobj['/Height'])))
@@ -447,7 +447,7 @@ class PDFFileElf(DataFileElf):
                         mode = 'CMYK'
                     elif vobj['/ColorSpace'] == '/DeviceGray':  # pragma: no cover
                         # 以下未经验证
-                        mode = 'P'
+                        mode = 'L'
                     elif isinstance(vobj['/ColorSpace'], PyPDF2.generic.ArrayObject):
                         if vobj['/ColorSpace'][0] == '/ICCBased':
                             if vobj['/ColorSpace'][1].getObject().getData().find(b'RGB') > 0:
@@ -477,21 +477,23 @@ class PDFFileElf(DataFileElf):
                     filenames.append(filename)
                     count = count + 1
                 elif vobj['/Filter'] == '/CCITTFaxDecode':  # pragma: no cover
+                    raise NotImplementedError
                     # 以下未经验证，待有需要再支持
-                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tiff')
-                    img = open(filename, 'wb')
-                    img.write(vobj.getData())
-                    img.close()
-                    filenames.append(filename)
-                    count = count + 1
+                    # filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tiff')
+                    # img = open(filename, 'wb')
+                    # img.write(vobj.getData())
+                    # img.close()
+                    # filenames.append(filename)
+                    # count = count + 1
                 elif vobj['/Filter'] == '/LZWDecode':  # pragma: no cover
+                    raise NotImplementedError
                     # 以下未经验证，待有需要再支持
-                    filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tif')
-                    img = open(filename, 'wb')
-                    img.write(vobj.getData())
-                    img.close()
-                    filenames.append(filename)
-                    count = count + 1
+                    # filename = self.get_log_path(prefix + HEX_REG.format(count, 6) + '.tif')
+                    # img = open(filename, 'wb')
+                    # img.write(vobj.getData())
+                    # img.close()
+                    # filenames.append(filename)
+                    # count = count + 1
         res = []
         if silent or (not self._output_flag):
             for filename in filenames:

@@ -76,7 +76,7 @@ class TestImageFileElf(unittest.TestCase):
         df_elf = ImageFileElf()
         splice_config = {
             'output': filename,
-            'images': [input_filename, input_filename],
+            'input': [input_filename, input_filename],
             'width': 125
         }
         df_elf.splice(**splice_config)
@@ -113,7 +113,7 @@ class TestImageFileElf(unittest.TestCase):
         df_elf = ImageFileElf()
         splice_config = {
             'output': filename,
-            'images': [input_filename, input_filename],
+            'input': [input_filename, input_filename],
             'width': 125,
             'mode': 'H'
         }
@@ -127,7 +127,7 @@ class TestImageFileElf(unittest.TestCase):
         filename = 'icon_splice_05.png'
         splice_config = {
             'output': filename,
-            'images': [input_filename, input_filename],
+            'input': [input_filename, input_filename],
             'width': 125
         }
         result = df_elf.splice(silent=True, **splice_config)
@@ -142,12 +142,80 @@ class TestImageFileElf(unittest.TestCase):
         filename = 'icon_splice_06.png'
         splice_config = {
             'output': filename,
-            'images': [input_filename, input_filename],
+            'input': [input_filename, input_filename],
             'width': 125,
             'mode': 'H'
         }
         result = df_elf.splice(silent=True, **splice_config)
         result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_h.png')
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
+        with Image.open(result_filename) as img:
+            self.assertEqual(None, ImageChops.difference(result, img).getbbox())
+
+    def test_splice_07(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_07.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'AH'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_ah.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
+    def test_splice_08(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_08.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'Ah'
+        }
+        result = df_elf.splice(silent=True, **splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_ah.png')
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
+        with Image.open(result_filename) as img:
+            self.assertEqual(None, ImageChops.difference(result, img).getbbox())
+
+    def test_splice_09(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_09.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'Av'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_av.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
+    def test_splice_10(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_08.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'aV'
+        }
+        result = df_elf.splice(silent=True, **splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_av.png')
         self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
         with Image.open(result_filename) as img:
             self.assertEqual(None, ImageChops.difference(result, img).getbbox())

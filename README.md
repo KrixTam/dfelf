@@ -187,7 +187,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 
 * **to_favicon**：把图片转化为favicon；对应的配置设定为*favicon*。
 > ImageFileElf.to_favicon(input_obj: Image.Image = None, silent: bool = False, **kwargs)
-* **splice**：将*images*中的文件拼接为一张图片；对应的配置设定为*splice*。
+* **splice**：将*input*中的图片文件拼接为一张图片；对应的配置设定为*splice*。
 > ImageFileElf.splice(input_obj: list = None, silent: bool = False, **kwargs)
 * **watermark**：在指定的*x*、*y*坐标中增加水印文字；对应的配置设定为*watermark*。
 > ImageFileElf.watermark(input_obj: Image.Image = None, silent: bool = False, **kwargs)
@@ -216,7 +216,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
     },
     'splice': {
         'output': 'output_filename',
-        'images': [],
+        'input': [],
         'width': 700,
         'gap': 5,
         'mode': 'v'
@@ -276,7 +276,20 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 }
 ```
 
-> 注：ImageFileElf.crop和ImageFileElf.fill自v0.1.4版本开始支持
+> - 自v0.1.3版本开始，有如下变更：
+> 
+>   - ImageFileElf.watermark对*color*参数支持值为"**auto**"的设定，表示由程序自动选择水印颜色；颜色选择方法为水印所在位置(*x, y*)区域高频使用颜色的反转颜色。
+> 
+>   - ImageFileElf.splice支持水平拼接（设置*mode*参数为"**H**"或"**h**"，默认为垂直拼接，即*mode*参数为"**v**"或"**V**"）。
+> 
+> - 自v0.1.4版本开始，支持ImageFileElf.crop、ImageFileElf.fill
+> 
+> - 自v0.1.6版本开始，ImageFileElf.splice有如下调整：
+>
+>   - 原配置项*images*调整为*input*，即使用与其他方法保持一致的输入配置项名称
+> 
+>   - 配置项*mode*除了支持水平（h或H）、垂直（v或V）外，新增自动模式，即自动水平（ah，不区分大小写）、自动垂直（av，不区分大小写）的拼接模式，此时参数*width*将会被忽略。
+>
 
 ## 示例
 
@@ -332,7 +345,3 @@ config = {
 input_df = pd.read_csv(os.path.join('sources', 'df1.csv'), dtype=str)
 df_elf.add(input_df, **config)
 ```
-
-ImageFileElf.watermark在v0.1.3版本中，对*color*参数支持值为"**auto**"的设定，表示由程序自动选择水印颜色；颜色选择方法为水印所在位置(*x, y*)区域高频使用颜色的反转颜色。
-
-ImageFileElf.splice自v0.1.3版本开始，支持水平拼接（设置*mode*参数为"**H**"或"**h**"，默认为垂直拼接，即*mode*参数为"**v**"或"**V**"）。

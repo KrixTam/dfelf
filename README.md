@@ -196,6 +196,22 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 > 自v0.1.7版本开始，支持CSVFileElf.merge
 > 
 
+### CSVFileElf的处理案例参考
+
+<img src="http://krixtam.com/img/it/dfelf/wm_add.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_join_01.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_join_02.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_exclude.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_filter.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_split.png">
+
+<img src="http://krixtam.com/img/it/dfelf/wm_merge.png">
+
 ## ImageFileElf
 
 Image文件精灵用于日常对图片类文件的处理应用。相关方法如下：

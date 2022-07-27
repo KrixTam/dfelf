@@ -98,6 +98,8 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 > CSVFileElf.filter(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
 * **split**：根据*key*对*input*的*csv*文件进行拆解处理；对应的配置设定为*split*。
 > CSVFileElf.split(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+* **merge**：基于*on*对*input*的*csv*文件进行合并处理；对应的配置设定为*merge*。
+> CSVFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 
@@ -116,7 +118,7 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
         },
         'tags': [
             {
-                'name': 'base_filename',
+                'name': 'tags_filename',
                 'key': 'key_field',
                 'fields': ['field A', 'field B'],
                 'defaults': ['default value of field A', 'default value of field B']
@@ -132,7 +134,7 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
         },
         'files': [
             {
-                'name': 'filename',
+                'name': 'join_filename',
                 'mappings': {}
             }
         ]
@@ -175,11 +177,24 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
             'non-numeric': []
         },
         'key': 'key_field'
+    },
+    'merge': {
+        'input': ['input_filename_01', 'input_filename_02'],
+        'output': {
+            'name': 'output_filename',
+            'BOM': False,
+            'non-numeric': []
+        },
+        'on': ['field_name'],
+        'mappings': {}
     }
 }
 ```
 
 对于输出*output*配置，如果需要输出*BOM*格式，请把*BOM*设置为*True*；若有一些字段需要表达为非数字类字段，以便于在Excel中打开处理的话，请在*non-numeric*中设置需要处理的相关字段。
+
+> 自v0.1.7版本开始，支持CSVFileElf.merge
+> 
 
 ## ImageFileElf
 

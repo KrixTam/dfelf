@@ -27,7 +27,7 @@ class CSVFileElf(DataFileElf):
                     },
                     'tags': [
                         {
-                            'name': 'base_filename',
+                            'name': 'tags_filename',
                             'key': 'key_field',
                             'fields': ['field A', 'field B'],
                             'defaults': ['default value of field A', 'default value of field B']
@@ -43,7 +43,7 @@ class CSVFileElf(DataFileElf):
                     },
                     'files': [
                         {
-                            'name': 'filename',
+                            'name': 'join_filename',
                             'mappings': {}
                         }
                     ]
@@ -86,106 +86,118 @@ class CSVFileElf(DataFileElf):
                         'non-numeric': []
                     },
                     'key': 'key_field'
+                },
+                'merge': {
+                    'input': ['input_filename_01', 'input_filename_02'],
+                    'output': {
+                        'name': 'output_filename',
+                        'BOM': False,
+                        'non-numeric': []
+                    },
+                    'on': ['field_name'],
+                    'mappings': {}
                 }
             },
             'schema': {
                 'type': 'object',
                 'properties': {
                     'add': {
-                        "type": "object",
-                        "properties": {
+                        'type': 'object',
+                        'properties': {
                             'base': {
-                                "type": "object",
-                                "properties": {
-                                    'name': {"type": "string"},
-                                    'key': {"type": "string"},
-                                    'drop_duplicates': {"type": "boolean"}
+                                'type': 'object',
+                                'properties': {
+                                    'name': {'type': 'string'},
+                                    'key': {'type': 'string'},
+                                    'drop_duplicates': {'type': 'boolean'}
                                 }
                             },
                             'output': {
-                                "type": "object",
-                                "properties": {
-                                    'name': {"type": "string"},
-                                    'BOM': {"type": "boolean"},
+                                'type': 'object',
+                                'properties': {
+                                    'name': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
                                     'non-numeric': {
-                                        "type": "array",
-                                        "items": {"type": "string"}
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
                                     }
                                 }
                             },
                             'tags': {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        'name': {"type": "string"},
-                                        'key': {"type": "string"},
+                                'type': 'array',
+                                'items': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'name': {'type': 'string'},
+                                        'key': {'type': 'string'},
                                         'fields': {
-                                            "type": "array",
-                                            "items": {"type": "string"}
+                                            'type': 'array',
+                                            'items': {'type': 'string'}
                                         },
                                         'defaults': {
-                                            "type": "array",
-                                            "items": {"type": "string"}
+                                            'type': 'array',
+                                            'items': {'type': 'string'}
                                         }
                                     }
-                                }
+                                },
+                                'minItems': 1
                             }
                         }
                     },
                     'join': {
                         'type': 'object',
-                        "properties": {
-                            'base': {"type": "string"},
+                        'properties': {
+                            'base': {'type': 'string'},
                             'output': {
-                                "type": "object",
-                                "properties": {
-                                    'name': {"type": "string"},
-                                    'BOM': {"type": "boolean"},
+                                'type': 'object',
+                                'properties': {
+                                    'name': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
                                     'non-numeric': {
-                                        "type": "array",
-                                        "items": {"type": "string"}
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
                                     }
                                 }
                             },
                             'files': {
-                                "type": "array",
-                                "items": {
+                                'type': 'array',
+                                'items': {
                                     'type': 'object',
-                                    "properties": {
-                                        'name': {"type": "string"},
+                                    'properties': {
+                                        'name': {'type': 'string'},
                                         'mappings': {'type': 'object'}
                                     }
-                                }
+                                },
+                                'minItems': 1
                             }
                         }
                     },
                     'exclude': {
                         'type': 'object',
-                        "properties": {
-                            'input': {"type": "string"},
+                        'properties': {
+                            'input': {'type': 'string'},
                             'exclusion': {
-                                "type": "array",
-                                "items": {
+                                'type': 'array',
+                                'items': {
                                     'type': 'object',
-                                    "properties": {
-                                        'key': {"type": "string"},
+                                    'properties': {
+                                        'key': {'type': 'string'},
                                         'op': {
-                                            "type": "string",
-                                            "enum": ['=', '!=', '>', '>=', '<=', '<']
+                                            'type': 'string',
+                                            'enum': ['=', '!=', '>', '>=', '<=', '<']
                                         },
-                                        'value': {"type": ["number", "string"]}
+                                        'value': {'type': ['number', 'string']}
                                     }
                                 }
                             },
                             'output': {
-                                "type": "object",
-                                "properties": {
-                                    'name': {"type": "string"},
-                                    'BOM': {"type": "boolean"},
+                                'type': 'object',
+                                'properties': {
+                                    'name': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
                                     'non-numeric': {
-                                        "type": "array",
-                                        "items": {"type": "string"}
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
                                     }
                                 }
                             }
@@ -193,30 +205,30 @@ class CSVFileElf(DataFileElf):
                     },
                     'filter': {
                         'type': 'object',
-                        "properties": {
-                            'input': {"type": "string"},
+                        'properties': {
+                            'input': {'type': 'string'},
                             'filters': {
-                                "type": "array",
-                                "items": {
+                                'type': 'array',
+                                'items': {
                                     'type': 'object',
-                                    "properties": {
-                                        'key': {"type": "string"},
+                                    'properties': {
+                                        'key': {'type': 'string'},
                                         'op': {
-                                            "type": "string",
-                                            "enum": ['=', '!=', '>', '>=', '<=', '<']
+                                            'type': 'string',
+                                            'enum': ['=', '!=', '>', '>=', '<=', '<']
                                         },
-                                        'value': {"type": ["number", "string"]}
+                                        'value': {'type': ['number', 'string']}
                                     }
                                 }
                             },
                             'output': {
-                                "type": "object",
-                                "properties": {
-                                    'name': {"type": "string"},
-                                    'BOM': {"type": "boolean"},
+                                'type': 'object',
+                                'properties': {
+                                    'name': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
                                     'non-numeric': {
-                                        "type": "array",
-                                        "items": {"type": "string"}
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
                                     }
                                 }
                             }
@@ -224,20 +236,47 @@ class CSVFileElf(DataFileElf):
                     },
                     'split': {
                         'type': 'object',
-                        "properties": {
-                            'input': {"type": "string"},
+                        'properties': {
+                            'input': {'type': 'string'},
                             'output': {
-                                "type": "object",
-                                "properties": {
-                                    'prefix': {"type": "string"},
-                                    'BOM': {"type": "boolean"},
+                                'type': 'object',
+                                'properties': {
+                                    'prefix': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
                                     'non-numeric': {
-                                        "type": "array",
-                                        "items": {"type": "string"}
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
                                     }
                                 }
                             },
-                            'key': {"type": "string"}
+                            'key': {'type': 'string'}
+                        }
+                    },
+                    'merge': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {
+                                'type': 'array',
+                                'items': {'type': 'string'},
+                                'minItems': 2
+                            },
+                            'output': {
+                                'type': 'object',
+                                'properties': {
+                                    'prefix': {'type': 'string'},
+                                    'BOM': {'type': 'boolean'},
+                                    'non-numeric': {
+                                        'type': 'array',
+                                        'items': {'type': 'string'}
+                                    }
+                                }
+                            },
+                            'on': {
+                                'type': 'array',
+                                'items': {'type': 'string'},
+                                'minItems': 1
+                            },
+                            'mappings': {'type': 'object'}
                         }
                     }
                 }
@@ -365,8 +404,9 @@ class CSVFileElf(DataFileElf):
         for file in files:
             df = CSVFileElf.read_content(file['name'])
             if len(file['mappings']) > 0:
-                for key, value in file['mappings'].items():
-                    df.rename(columns={key: value}, inplace=True)
+                # for key, value in file['mappings'].items():
+                #     df.rename(columns={key: value}, inplace=True)
+                df.rename(columns=file['mappings'], inplace=True)
             df_ori = df_ori.append(df)
         if silent:
             pass
@@ -525,3 +565,46 @@ class CSVFileElf(DataFileElf):
             return res
         else:
             raise KeyError(logger.error([2002, input_filename, key_name]))
+
+    def merge(self, input_obj: list = None, silent: bool = False, **kwargs):
+        task_key = 'merge'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                inputs = self._config[task_key]['input']
+                df_ori = []
+                for input_filename in inputs:
+                    df = CSVFileElf.read_content(input_filename)
+                    df_ori.append(df)
+        else:
+            inputs = '<内存对象>'
+            df_ori = input_obj.copy()
+        mappings = self._config[task_key]['mappings']
+        if len(mappings) > 0:
+            for df in df_ori:
+                df.rename(columns=mappings, inplace=True)
+        on_cols = self._config[task_key]['on']
+        df_on = pd.DataFrame([], columns=on_cols)
+        all_cols = []
+        for df in df_ori:
+            df_on = df_on.append(df[on_cols])
+            all_cols = all_cols + list(set(df.columns) - set(all_cols))
+        all_cols.sort()
+        for col in on_cols:
+            all_cols.remove(col)
+        all_cols = on_cols + all_cols
+        df_res = pd.DataFrame([], columns=all_cols)
+        df_on, log_file = self.drop_duplicates(df_on, on_cols)
+        df_on.reset_index(drop=True, inplace=True)
+        df_res[on_cols] = df_on[on_cols]
+        for df in df_ori:
+            index = df_on[df_on.set_index(on_cols).index.isin(df.set_index(on_cols).index)].index
+            df.set_index(index, inplace=True)
+            df_res[df_res.isnull()] = df
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, df=df_res)
+        return df_res

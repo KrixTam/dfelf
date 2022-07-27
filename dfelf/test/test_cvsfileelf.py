@@ -951,12 +951,52 @@ class TestCSVFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.exclude(**config))
         self.assertEqual(None, df_elf.filter(**config))
         self.assertEqual(None, df_elf.split(**config))
+        self.assertEqual(None, df_elf.merge(**config))
 
     def test_set_output(self):
         output_dir = os.path.join('output', 'test')
         self.assertFalse(os.path.exists(output_dir))
         df_elf = CSVFileElf(output_dir=output_dir)
         self.assertTrue(os.path.exists(output_dir))
+
+    def test_merge_01(self):
+        df_elf = CSVFileElf()
+        input_filename_01 = os.path.join(cwd, 'sources', 'merge', 'cf_161505.csv')
+        input_filename_02 = os.path.join(cwd, 'sources', 'merge', 'fh_161505.csv')
+        config = {
+            'input': [input_filename_01, input_filename_02],
+            'output': {
+                'name': 'merge_01.csv',
+                'BOM': False,
+                'non-numeric': []
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        result = df_elf.merge(**config)
+        result_filename = os.path.join(cwd, 'result', 'merge.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_merge_02(self):
+        df_elf = CSVFileElf()
+        input_filename_01 = os.path.join(cwd, 'sources', 'merge', 'cf_161505.csv')
+        input_filename_02 = os.path.join(cwd, 'sources', 'merge', 'fh_161505.csv')
+        config = {
+            'output': {
+                'name': 'merge_02.csv',
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        input_df_01 = pd.read_csv(input_filename_01, dtype=str)
+        input_df_02 = pd.read_csv(input_filename_02, dtype=str)
+        result = df_elf.merge([input_df_01, input_df_02], True, **config)
+        result_filename = os.path.join(cwd, 'result', 'merge.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertFalse(os.path.exists(dist_filename))
+        res = df_elf.read_content(result_filename)
+        self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
 
 
 if __name__ == '__main__':

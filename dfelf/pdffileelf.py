@@ -82,7 +82,7 @@ class PDFFileElf(DataFileElf):
                     'pages': [1]
                 },
                 'merge': {
-                    'input': [],
+                    'input': ['input_filename_01', 'input_filename_02'],
                     'output': 'output_filename'
                 },
                 'remove': {
@@ -138,12 +138,15 @@ class PDFFileElf(DataFileElf):
                         }
                     },
                     'merge': {
-                        'input': {
-                            'type': 'array',
-                            'minItems': 2,
-                            'items': {'type': 'string'}
-                        },
-                        'output': {'type': 'string'}
+                        'type': 'object',
+                        'properties': {
+                            'input': {
+                                'type': 'array',
+                                'minItems': 2,
+                                'items': {'type': 'string'}
+                            },
+                            'output': {'type': 'string'}
+                        }
                     },
                     'remove': {
                         'type': 'object',

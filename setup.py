@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
     name='dfelf',
-    version='0.1.7',
+    version='0.1.8',
     packages=['dfelf', 'dfelf.res', 'dfelf.res.Noto_Sans_SC'],
     package_data={'dfelf': ['LICENSE', './dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf', './dfelf/res/Noto_Sans_SC/OFL.txt']},
     include_package_data=True,
@@ -27,7 +27,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'pymoment>=0.0.6',
-        'ni-config>=0.0.12',
+        'ni-config>=0.0.15',
         'pandas>=0.25.2',
         'PyPDF2>=1.26.0',
         'Pillow>=5.2.0',

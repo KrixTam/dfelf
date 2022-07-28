@@ -10,7 +10,7 @@ cwd = os.path.abspath(os.path.dirname(__file__))
 
 class TestCSVFileElf(unittest.TestCase):
 
-    def test_drop_duplicates(self):
+    def test_drop_duplicates_01(self):
         input_filename = os.path.join(cwd, 'sources', 'ori_data.csv')
         log_result = os.path.join(cwd, 'result', 'drop_duplicates.ori.log')
         df_elf = CSVFileElf()
@@ -18,6 +18,22 @@ class TestCSVFileElf(unittest.TestCase):
         log_filename = df_elf.drop_duplicates(df, 'brand')[1]
         log_file = os.path.join('log', log_filename)
         self.assertEqual(df_elf.checksum(log_file), df_elf.checksum(log_result))
+
+    def test_drop_duplicates_02(self):
+        input_filename = os.path.join(cwd, 'sources', 'ori_data.csv')
+        log_result = os.path.join(cwd, 'result', 'drop_duplicates.multi.log')
+        df_elf = CSVFileElf()
+        df = CSVFileElf.read_content(input_filename)
+        log_filename = df_elf.drop_duplicates(df, ['brand', 'style'])[1]
+        log_file = os.path.join('log', log_filename)
+        self.assertEqual(df_elf.checksum(log_file), df_elf.checksum(log_result))
+
+    def test_drop_duplicates_03(self):
+        input_filename = os.path.join(cwd, 'sources', 'ori_data.csv')
+        df_elf = CSVFileElf()
+        df = CSVFileElf.read_content(input_filename)
+        with self.assertRaises(TypeError):
+            df_elf.drop_duplicates(df, 123)
 
     def test_add_01(self):
         df_elf = CSVFileElf()

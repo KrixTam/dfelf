@@ -307,7 +307,13 @@ class CSVFileElf(DataFileElf):
             CSVFileElf.to_csv(kwargs['df'], output_filename, bom, nn)
 
     def drop_duplicates(self, df, subset):
-        mask = pd.Series(df.duplicated(subset=subset))
+        if isinstance(subset, str):
+            subset_value = [subset]
+        elif isinstance(subset, list):
+            subset_value = subset.copy()
+        else:
+            raise TypeError(logger.error([2003, subset, type(subset)]))
+        mask = pd.Series(df.duplicated(subset=subset_value))
         log_filename = 'drop_duplicates' + moment().format('.YYYYMMDD.HHmmss') + '.log'
         filename = self.get_log_path(log_filename)
         log_filename_pre = 'pre_' + log_filename
@@ -316,8 +322,8 @@ class CSVFileElf(DataFileElf):
         else_mask = ~ mask
         if not duplicates.empty:
             CSVFileElf.to_csv_with_bom(duplicates, filename)
-            tmp_df = df[df[subset].isin(duplicates[subset])]
-            logger.warning([2000, log_filename_pre, tmp_df.sort_values(by=[subset])])
+            tmp_df = df[df[subset_value].isin(duplicates[subset_value])]
+            logger.warning([2000, log_filename_pre, tmp_df.sort_values(by=subset_value)])
             CSVFileElf.to_csv_with_bom(tmp_df, pre_filename)
             logger.warning([2001, log_filename, duplicates])
         return df[else_mask], log_filename
@@ -600,9 +606,10 @@ class CSVFileElf(DataFileElf):
         df_on.reset_index(drop=True, inplace=True)
         df_res[on_cols] = df_on[on_cols]
         for df in df_ori:
-            index = df_on[df_on.set_index(on_cols).index.isin(df.set_index(on_cols).index)].index
-            df.set_index(index, inplace=True)
-            df_res[df_res.isnull()] = df
+            df_adj = self.drop_duplicates(df, on_cols)[0]
+            index = df_on[df_on.set_index(on_cols).index.isin(df_adj.set_index(on_cols).index)].index
+            df_adj.set_index(index, inplace=True)
+            df_res[df_res.isnull()] = df_adj
         if silent:
             pass
         else:

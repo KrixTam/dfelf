@@ -35,6 +35,22 @@ class TestCSVFileElf(unittest.TestCase):
         with self.assertRaises(TypeError):
             df_elf.drop_duplicates(df, 123)
 
+    def test_drop_duplicates_04(self):
+        fof_list = ['009213', '006297', '006880', '010266', '005215', '005156', '005957', '008145']
+        df_elf = CSVFileElf()
+        columns = ['日期']
+        df_all = pd.DataFrame([], columns=columns)
+        for fund_code in fof_list:
+            filename = fund_code + '_adj.csv'
+            df = CSVFileElf.read_content(os.path.join(cwd, 'sources', 'fof', filename))
+            df.sort_values(by='日期', inplace=True)
+            df = df[(df['日期'] >= '2022-06-16') & (df['日期'] <= '2022-07-22')]
+            df_all = df_all.append(df[columns])
+        res = df_elf.drop_duplicates(df_all, columns)[0]
+        self.assertEqual(res.shape[0], 27)
+        self.assertEqual(res.iloc[0]['日期'], '2022-06-16')
+        self.assertEqual(res.iloc[-1]['日期'], '2022-07-22')
+
     def test_add_01(self):
         df_elf = CSVFileElf()
         config = {

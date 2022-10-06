@@ -145,7 +145,7 @@ class ImageFileElf(DataFileElf):
                             'gap': {'type': 'number'},
                             'mode': {
                                 'type': 'string',
-                                'pattern': '[aA]?[vVhH]{1}'
+                                'pattern': '[aAxX]?[vVhH]{1}'
                             }
                         }
                     },
@@ -441,6 +441,60 @@ class ImageFileElf(DataFileElf):
                 ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
                 for i in range(num_img):
                     img = input_images[i]
+                    loc = (locations[i], gap)
+                    ret_img.paste(img, loc)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+            elif self._config[task_key]['mode'].lower() == 'xv':
+                min_width = input_images[0].size[0]
+                for i in range(num_img):
+                    img = input_images[i]
+                    if img.size[0] < min_width:
+                        min_width = img.size[0]
+                width_img = 2 * gap + min_width
+                height_img = gap
+                y = gap
+                locations.append(y)
+                for i in range(num_img):
+                    img = input_images[i].copy()
+                    resize_height = int(img.size[1] * min_width / img.size[0])
+                    height_img = height_img + resize_height + gap
+                    images.append(img.resize((min_width, resize_height), Image.ANTIALIAS))
+                    y = y + resize_height + gap
+                    locations.append(y)
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = images[i]
+                    loc = (gap, locations[i])
+                    ret_img.paste(img, loc)
+                if silent:
+                    pass
+                else:
+                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                return ret_img
+            elif self._config[task_key]['mode'].lower() == 'xh':
+                min_height = input_images[0].size[1]
+                for i in range(num_img):
+                    img = input_images[i]
+                    if img.size[1] < min_height:
+                        min_height = img.size[1]
+                width_img = gap
+                height_img = 2 * gap + min_height
+                x = gap
+                locations.append(x)
+                for i in range(num_img):
+                    img = input_images[i].copy()
+                    resize_width = int(img.size[0] * min_height / img.size[1])
+                    width_img = width_img + resize_width + gap
+                    images.append(img.resize((resize_width, min_height), Image.ANTIALIAS))
+                    x = x + resize_width + gap
+                    locations.append(x)
+                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                for i in range(num_img):
+                    img = images[i]
                     loc = (locations[i], gap)
                     ret_img.paste(img, loc)
                 if silent:

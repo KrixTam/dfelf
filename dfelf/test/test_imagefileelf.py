@@ -206,7 +206,7 @@ class TestImageFileElf(unittest.TestCase):
         input_filename_01 = os.path.join(cwd, 'sources', '01.png')
         input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
         input_filename_03 = os.path.join(cwd, 'sources', '02.png')
-        filename = 'icon_splice_08.png'
+        filename = 'icon_splice_10.png'
         df_elf = ImageFileElf()
         splice_config = {
             'output': filename,
@@ -216,6 +216,74 @@ class TestImageFileElf(unittest.TestCase):
         }
         result = df_elf.splice(silent=True, **splice_config)
         result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_av.png')
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
+        with Image.open(result_filename) as img:
+            self.assertEqual(None, ImageChops.difference(result, img).getbbox())
+
+    def test_splice_11(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_11.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'xH'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_xh.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
+    def test_splice_12(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_12.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'Xh'
+        }
+        result = df_elf.splice(silent=True, **splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_xh.png')
+        self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
+        with Image.open(result_filename) as img:
+            self.assertEqual(None, ImageChops.difference(result, img).getbbox())
+
+    def test_splice_13(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_13.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'Xv'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_xv.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
+    def test_splice_14(self):
+        input_filename_01 = os.path.join(cwd, 'sources', '01.png')
+        input_filename_02 = os.path.join(cwd, 'sources', 'icon.png')
+        input_filename_03 = os.path.join(cwd, 'sources', '02.png')
+        filename = 'icon_splice_14.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename_01, input_filename_02, input_filename_03],
+            'width': 125,
+            'mode': 'xV'
+        }
+        result = df_elf.splice(silent=True, **splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_xv.png')
         self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
         with Image.open(result_filename) as img:
             self.assertEqual(None, ImageChops.difference(result, img).getbbox())

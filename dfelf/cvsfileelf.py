@@ -329,7 +329,7 @@ class CSVFileElf(DataFileElf):
             logger.warning([2000, log_filename_pre, tmp_df.sort_values(by=subset_value)])
             CSVFileElf.to_csv_with_bom(tmp_df, pre_filename)
             logger.warning([2001, log_filename, duplicates])
-        return df[else_mask], log_filename
+        return df[else_mask].copy(), log_filename
 
     @staticmethod
     def tidy(df, nn):

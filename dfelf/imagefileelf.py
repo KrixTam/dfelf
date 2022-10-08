@@ -68,6 +68,7 @@ class ImageFileElf(DataFileElf):
                     'input': [],
                     'width': 700,
                     'gap': 5,
+                    'color': '#ffffff',
                     'mode': 'v'
                 },
                 'watermark': {
@@ -143,6 +144,10 @@ class ImageFileElf(DataFileElf):
                             },
                             'width': {'type': 'number'},
                             'gap': {'type': 'number'},
+                            'color': {
+                                'type': 'string',
+                                'pattern': '^#[A-Fa-f0-9]{6}'
+                            },
                             'mode': {
                                 'type': 'string',
                                 'pattern': '[aAxX]?[vVhH]{1}'
@@ -354,6 +359,7 @@ class ImageFileElf(DataFileElf):
         if num_img > 0:
             output_filename = self._config[task_key]['output']
             gap = self._config[task_key]['gap']
+            bg_color = hex_to_rgb(self._config[task_key]['color'])
             images = []
             locations = []
             if self._config[task_key]['mode'].lower() == 'v':
@@ -369,7 +375,7 @@ class ImageFileElf(DataFileElf):
                     images.append(img.resize((width, resize_height), Image.ANTIALIAS))
                     y = y + resize_height + gap
                     locations.append(y)
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = images[i]
                     loc = (gap, locations[i])
@@ -392,7 +398,7 @@ class ImageFileElf(DataFileElf):
                     images.append(img.resize((resize_width, height), Image.ANTIALIAS))
                     x = x + resize_width + gap
                     locations.append(x)
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = images[i]
                     loc = (locations[i], gap)
@@ -415,7 +421,7 @@ class ImageFileElf(DataFileElf):
                     locations.append(y)
                 width_img = width_img + max_width
                 height_img = y
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = input_images[i]
                     loc = (gap, locations[i])
@@ -438,7 +444,7 @@ class ImageFileElf(DataFileElf):
                     locations.append(x)
                 height_img = height_img + max_height
                 width_img = x
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = input_images[i]
                     loc = (locations[i], gap)
@@ -465,7 +471,7 @@ class ImageFileElf(DataFileElf):
                     images.append(img.resize((min_width, resize_height), Image.ANTIALIAS))
                     y = y + resize_height + gap
                     locations.append(y)
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = images[i]
                     loc = (gap, locations[i])
@@ -492,7 +498,7 @@ class ImageFileElf(DataFileElf):
                     images.append(img.resize((resize_width, min_height), Image.ANTIALIAS))
                     x = x + resize_width + gap
                     locations.append(x)
-                ret_img = Image.new('RGBA', (width_img, height_img), (255, 255, 255))
+                ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
                 for i in range(num_img):
                     img = images[i]
                     loc = (locations[i], gap)

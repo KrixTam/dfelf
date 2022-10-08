@@ -288,6 +288,20 @@ class TestImageFileElf(unittest.TestCase):
         with Image.open(result_filename) as img:
             self.assertEqual(None, ImageChops.difference(result, img).getbbox())
 
+    def test_splice_15(self):
+        input_filename = os.path.join(cwd, 'sources', 'icon.png')
+        filename = 'icon_splice_15.png'
+        df_elf = ImageFileElf()
+        splice_config = {
+            'output': filename,
+            'input': [input_filename, input_filename],
+            'width': 125,
+            'color': '#800000'
+        }
+        df_elf.splice(**splice_config)
+        result_filename = os.path.join(cwd, 'result', 'splice', 'icon_splice_v_red.png')
+        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+
     def test_watermark_01(self):
         df_elf = ImageFileElf()
         ttf = os.path.join(cwd, 'sources', 'arial.ttf')

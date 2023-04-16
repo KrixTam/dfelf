@@ -53,6 +53,10 @@ class DataFileElf(metaclass=ABCMeta):
     def to_output(self, task_key, **kwargs):
         pass  # pragma: no cover
 
+    @abstractmethod
+    def trans_object(self, input_obj, task_key):
+        pass  # pragma: no cover
+
     def is_default(self, task_key):
         res = self._config.is_default(task_key)
         if res:

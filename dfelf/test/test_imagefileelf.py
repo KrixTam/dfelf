@@ -508,7 +508,7 @@ class TestImageFileElf(unittest.TestCase):
         self.assertFalse(os.path.exists(df_elf.get_output_path(output_filename)))
         result = df_elf.decode_qrcode(input_img)
         self.assertEqual(result, url_data)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             df_elf.decode_qrcode(url_data)
 
     def test_resize_01(self):

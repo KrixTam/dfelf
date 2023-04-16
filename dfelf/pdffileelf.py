@@ -7,6 +7,7 @@ from dfelf import DataFileElf
 from dfelf.commons import logger, is_same_image
 from io import BytesIO
 import shutil
+import fitz
 
 HEX_REG = '{0:0{1}x}'
 
@@ -94,6 +95,17 @@ class PDFFileElf(DataFileElf):
                     'input': 'input_filename',
                     'output': 'output_filename_prefix',
                     'pages': [1]
+                },
+                'replace_text': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'rules': [
+                        {
+                            'keyword': '',
+                            'mode': 0,
+                            'substitute': ''
+                        }
+                    ],
                 }
             },
             'schema': {
@@ -170,6 +182,28 @@ class PDFFileElf(DataFileElf):
                                 'items': {'type': 'integer'}
                             }
                         }
+                    },
+                    'replace_text': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'rules': {
+                                'type': 'array',
+                                'items': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'keyword': {'type': 'string'},
+                                        'mode': {
+                                            'type': 'integer',
+                                            'minimum': 0,
+                                            'maximum': 1
+                                        },
+                                        'substitute': {'type': 'string'}
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -196,7 +230,38 @@ class PDFFileElf(DataFileElf):
                 kwargs['pdf_writer'].write(output_stream)
                 output_stream.close()
 
-    def reorganize(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+    def trans_object(self, input_obj, task_key):
+        if task_key == 'image2pdf':
+            if isinstance(input_obj, str):
+                return Image.open(input_obj).convert('RGB')
+            else:
+                if isinstance(input_obj, Image.Image):
+                    return input_obj.copy().convert('RGB')
+            raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(Image.Image)]))
+        else:
+            if task_key == 'replace_text':
+                if isinstance(input_obj, str):
+                    return fitz.open(input_obj)
+                else:
+                    if isinstance(input_obj, PdfFileReader):
+                        stream = input_obj.stream
+                        stream.seek(0)
+                        return fitz.open(stream=stream.read(), filetype='pdf')
+                raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(PdfFileReader)]))
+            else:
+                if isinstance(input_obj, str):
+                    if task_key in ['2image', 'merge']:
+                        return PdfFileReader(open(input_obj, 'rb'), strict=False)
+                    else:
+                        return PdfFileReader(open(input_obj, 'rb'))
+                else:
+                    if isinstance(input_obj, PdfFileReader):
+                        stream = input_obj.stream
+                        stream.seek(0)
+                        return PdfFileReader(stream)
+                raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(PdfFileReader)]))
+
+    def reorganize(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'reorganize'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -204,11 +269,10 @@ class PDFFileElf(DataFileElf):
                 return None
             else:
                 input_filename = self._config[task_key]['input']
-                input_stream = open(input_filename, 'rb')
-                pdf_file = PdfFileReader(input_stream)
+                pdf_file = self.trans_object(input_filename, task_key)
         else:
             input_filename = '<内存对象>'
-            pdf_file = input_obj
+            pdf_file = self.trans_object(input_obj, task_key)
         pages = self._config[task_key]['pages']
         output = PdfFileWriter()
         res_output = PdfFileWriter()
@@ -242,10 +306,10 @@ class PDFFileElf(DataFileElf):
                 image_filenames = self._config[task_key]['images']
                 num_filenames = len(image_filenames)
                 if num_filenames > 0:
-                    image_0 = Image.open(image_filenames[0]).convert('RGB')
+                    image_0 = self.trans_object(image_filenames[0], task_key)
                     image_list = []
                     for i in range(1, num_filenames):
-                        image = Image.open(image_filenames[i]).convert('RGB')
+                        image = self.trans_object(image_filenames[i], task_key)
                         image_list.append(image)
                 else:
                     logger.warning([4001])
@@ -253,10 +317,10 @@ class PDFFileElf(DataFileElf):
         else:
             num_filenames = len(input_obj)
             if num_filenames > 0:
-                image_0 = input_obj[0].copy().convert('RGB')
+                image_0 = self.trans_object(input_obj[0], task_key)
                 image_list = []
                 for i in range(1, num_filenames):
-                    image = input_obj[i].copy().convert('RGB')
+                    image = self.trans_object(input_obj[i], task_key)
                     image_list.append(image)
             else:
                 logger.warning([4001])
@@ -271,18 +335,16 @@ class PDFFileElf(DataFileElf):
         pdf_file = PdfFileReader(buf)
         return pdf_file
 
-    def to_image(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+    def to_image(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = '2image'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                input_stream = open(input_filename, 'rb')
-                pdf_file = PdfFileReader(input_stream, strict=False)
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            pdf_file = input_obj
+            pdf_file = self.trans_object(input_obj, task_key)
         output_pages = self._config[task_key]['pages']
         pdf_pages_len = pdf_file.getNumPages()
         ori_pages = range(1, pdf_pages_len + 1)
@@ -341,13 +403,14 @@ class PDFFileElf(DataFileElf):
             else:
                 input_filenames = self._config[task_key]['input']
                 input_files = []
-                for i in range(len(input_filenames)):
-                    input_filename = input_filenames[i]
-                    input_stream = open(input_filename, 'rb')
-                    pdf_file = PdfFileReader(input_stream, strict=False)
+                for item in input_filenames:
+                    pdf_file = self.trans_object(item, task_key)
                     input_files.append(pdf_file)
         else:
-            input_files = input_obj
+            input_files = []
+            for item in input_obj:
+                pdf_file = self.trans_object(item, task_key)
+                input_files.append(pdf_file)
         output = PdfFileWriter()
         res_output = PdfFileWriter()
         for i in range(len(input_files)):
@@ -369,19 +432,16 @@ class PDFFileElf(DataFileElf):
         res = PdfFileReader(buf)
         return res
 
-    def remove(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+    def remove(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'remove'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                input_stream = open(input_filename, 'rb')
-                pdf_file = PdfFileReader(input_stream)
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            input_filename = '<内存对象>'
-            pdf_file = input_obj
+            pdf_file = self.trans_object(input_obj, task_key)
         pages = self._config[task_key]['pages']
         output = PdfFileWriter()
         res_output = PdfFileWriter()
@@ -404,19 +464,16 @@ class PDFFileElf(DataFileElf):
         res = PdfFileReader(buf)
         return res
 
-    def extract_images(self, input_obj: PdfFileReader = None, silent: bool = False, **kwargs):
+    def extract_images(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'extract_images'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                input_stream = open(input_filename, 'rb')
-                pdf_file = PdfFileReader(input_stream)
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            input_filename = '<内存对象>'
-            pdf_file = input_obj
+            pdf_file = self.trans_object(input_obj, task_key)
         pages = []
         pdf_pages_len = len(self._config[task_key]['pages'])
         if pdf_pages_len == 0:
@@ -510,3 +567,35 @@ class PDFFileElf(DataFileElf):
                 image = Image.open(real_filename)
                 res.append(image)
         return res
+
+    def replace_text(self, input_obj=None, silent: bool = False, **kwargs):
+        task_key = 'replace_text'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
+        else:
+            pdf_file = self.trans_object(input_obj, task_key)
+        pages = len(pdf_file)
+        rules = self._config[task_key]['rules']
+        for i in pages:
+            page = pdf_file[i]
+            words = page.get_text("words")
+            for word in words:
+                for rule in rules:
+                    if rule['mode'] == 0:
+                        if rule['keyword'] in word[4]:
+                            page.add_redact_annot(word[:4], text=rule['substitute'])
+                    else:
+                        if rule['mode'] == 1:
+                            new_word = word[4].replace(rule['keyword'], rule['substitute'])
+                            page.add_redact_annot(word[:4], text=new_word)
+            page.apply_redactions()
+        output_filename = self.get_output_path(self._config[task_key]['output'])
+        if silent:
+            output_filename = self.get_log_path(self._config[task_key]['output'])
+        pdf_file.ez_save(output_filename)
+        pdf_file.close()
+        return PdfFileReader(open(output_filename, 'rb'))

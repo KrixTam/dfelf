@@ -26,17 +26,20 @@
 PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 
 * **reorganize**：抽取PDF文件中相关页重新排列组合成一个新的PDF文件；对应的配置设定为*reorganize*。
-> PDFFileElf.reorganize(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+> PDFFileElf.reorganize(input_obj=None, silent: bool = False, **kwargs)
 * **image2pdf**：将图片文件拼接成一个PDF文件，每个图片为一页；对应的配置设定为*image2pdf*。
 > PDFFileElf.image2pdf(input_obj: list = None, silent: bool = False, **kwargs)
 * **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*2image*。
-> PDFFileElf.to_image(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+> PDFFileElf.to_image(input_obj=None, silent: bool = False, **kwargs)
 * **merge**：将PDF文件按顺序合并为一个PDF文件；对应的配置设定为*merge*。
 > PDFFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
 * **remove**：将PDF文件中指定的页面删除后输出PDF文件；对应的配置设定为*remove*。
-> PDFFileElf.remove(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+> PDFFileElf.remove(input_obj=None, silent: bool = False, **kwargs)
 * **extract_images**：将PDF文件中指定的页面或整个PDF文件（当*pages*配置为空*list*时，表示整个PDF文件）的图片进行提取；对应的配置设定为*extract_images*。
-> PDFFileElf.extract_images(input_obj: PdfFileReader = None, silent: bool = False, **kwargs)
+> PDFFileElf.extract_images(input_obj=None, silent: bool = False, **kwargs)
+* **replace_text**：将PDF文件中指定的文本进行替换；设置规则*rules*时，如果*mode*为0，表示只要匹配上，整段文本进行替换；如果*mode*为1，只替换指定的文本，即*keyword*。
+> PDFFileElf.replace_text(input_obj=None, silent: bool = False, **kwargs)
+> 
 
 配置文件设定如下：
 
@@ -71,6 +74,17 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
         'input': 'input_filename',
         'output': 'output_filename_prefix',
         'pages': [1]
+    },
+    'replace_text': {
+        'input': 'input_filename',
+        'output': 'output_filename',
+        'rules': [
+            {
+                'keyword': '',
+                'mode': 0,
+                'substitute': ''
+            }
+        ],
     }
 }
 ```
@@ -81,6 +95,8 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > 
 > - 自v0.1.6版本开始，支持PDFFileElf.remove和PDFFileElf.extract_images
 > 
+> - 自v0.1.13版本开始，支持PDFFileElf.replace_text
+> 
 > 对于PDFFileElf.extract_images的*pages*配置，若为空list，即"**\[ \]**"，表示对整个文件的图片进行提取。
 > 
 
@@ -89,17 +105,17 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 
 * **add**：将*tags*下定义的*csv*文件，按照*key*进行匹配，补充相关字段到*base*的*csv*文件中；对应的配置设定为*add*。
-> CSVFileElf.add(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+> CSVFileElf.add(input_obj=None, silent: bool = False, **kwargs)
 * **join**：将*files*下定义的*csv*文件，拼接到*base*的*csv*文件中；对应的配置设定为*join*。
-> CSVFileElf.join(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+> CSVFileElf.join(input_obj=None, silent: bool = False, **kwargs)
 * **exclude**：根据*exclusion*下定义的条件（*op*支持的操作有：'=', '!=', '>', '>=', '<=', '<'），对*input*的*csv*文件内容进行剔除处理；对应的配置设定为*exclude*。
-> CSVFileElf.exclude(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+> CSVFileElf.exclude(input_obj=None, silent: bool = False, **kwargs)
 * **filter**：根据*filters*下定义的条件（*op*支持的操作有：'=', '!=', '>', '>=', '<=', '<'），对*input*的*csv*文件内容进行筛选处理；对应的配置设定为*filter*。
-> CSVFileElf.filter(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+> CSVFileElf.filter(input_obj=None, silent: bool = False, **kwargs)
 * **split**：根据*key*对*input*的*csv*文件进行拆解处理；对应的配置设定为*split*。
-> CSVFileElf.split(input_obj: pd.DataFrame = None, silent: bool = False, **kwargs)
+> CSVFileElf.split(input_obj=None, silent: bool = False, **kwargs)
 * **merge**：基于*on*对*input*的*csv*文件进行合并处理；对应的配置设定为*merge*。
-> CSVFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
+> CSVFileElf.merge(input_obj=None, silent: bool = False, **kwargs)
 
 配置文件设定如下：
 
@@ -217,11 +233,11 @@ CSV文件精灵用于日常对*csv*文件的处理应用。相关方法如下：
 Image文件精灵用于日常对图片类文件的处理应用。相关方法如下：
 
 * **to_favicon**：把图片转化为favicon；对应的配置设定为*favicon*。
-> ImageFileElf.to_favicon(input_obj: Image.Image = None, silent: bool = False, **kwargs)
+> ImageFileElf.to_favicon(input_obj=None, silent: bool = False, **kwargs)
 * **splice**：将*input*中的图片文件拼接为一张图片；对应的配置设定为*splice*。
-> ImageFileElf.splice(input_obj: list = None, silent: bool = False, **kwargs)
+> ImageFileElf.splice(input_obj=None, silent: bool = False, **kwargs)
 * **watermark**：在指定的*x*、*y*坐标中增加水印文字；对应的配置设定为*watermark*。
-> ImageFileElf.watermark(input_obj: Image.Image = None, silent: bool = False, **kwargs)
+> ImageFileElf.watermark(input_obj=None, silent: bool = False, **kwargs)
 * **qrcode**：将*input*的字符串生成二维码；对应的配置设定为*qrcode*。
 > ImageFileElf.qrcode(input_obj: str = None, silent: bool = False, **kwargs)
 * **decode_qrcode**：将*input*的二维码图片解析成字符串，并返回；对应的配置设定为*dqrcode*。
@@ -231,9 +247,9 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 * **from_base64**：将*input*的base64字符串转化为图片；对应的配置设定为*base64*。
 > ImageFileElf.from_base64(input_obj: str = None, silent: bool = False, **kwargs)
 * **resize**：将*input*的图片调整尺寸后输出到*output*；对应的配置设定为*resize*。
-> ImageFileElf.resize(input_obj: Image.Image = None, silent: bool = False, **kwargs)
+> ImageFileElf.resize(input_obj=None, silent: bool = False, **kwargs)
 * **crop**：将*input*的图片按照*loaction*裁剪后输出到*output*；对应的配置设定为*crop*。当*mode*为**0**时，*location*为**left, top, right, bottom**构成的数组；当*mode*为**1**时，*location*为**left, top, width, right**构成的数组。
-> ImageFileElf.crop(input_obj: Image.Image = None,  silent: bool = False, **kwargs)
+> ImageFileElf.crop(input_obj=None,  silent: bool = False, **kwargs)
 * **fill**：将*input*的图片中*loaction*的指定区域进行马赛克或者单色填充后输出到*output*；对应的配置设定为*fill*。当*mode*为**0**时，*location*为**left, top, right, bottom**构成的数组；当*mode*为**1**时，*location*为**left, top, width, right**构成的数组。*type*为填充方式，**M**或**m**表示马赛克填充，单色填充可以用*#8012de*指定到**type**中实现。
 > ImageFileElf.fill(input_obj: np.ndarray = None, silent: bool = False, **kwargs)
 

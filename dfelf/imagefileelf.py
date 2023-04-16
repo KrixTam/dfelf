@@ -305,17 +305,54 @@ class ImageFileElf(DataFileElf):
                 else:
                     kwargs['img'].save(output_filename)
 
-    def to_favicon(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
+    def trans_object(self, input_obj, task_key):
+        if task_key == 'dqrcode':
+            if isinstance(input_obj, str):
+                if os.path.exists(input_obj):
+                    return cv2.imread(input_obj)
+                else:
+                    raise ValueError(logger.error([3009, input_obj]))
+            else:
+                if isinstance(input_obj, np.ndarray):
+                    return input_obj.copy()
+                else:
+                    if isinstance(input_obj, Image.Image):
+                        return read_image(input_obj)
+                raise TypeError(logger.error([3007, type(input_obj)]))
+        else:
+            if task_key == 'fill':
+                if isinstance(input_obj, np.ndarray):
+                    return input_obj.copy()
+                else:
+                    if isinstance(input_obj, str):
+                        return cv2.imread(input_obj)
+                    else:
+                        raise TypeError(logger.error([3008, task_key, type(input_obj), type(str)]))
+                raise TypeError(logger.error([3008, task_key, type(input_obj), type(np.ndarray)]))
+            else:
+                if isinstance(input_obj, Image.Image):
+                    return input_obj.copy()
+                else:
+                    if isinstance(input_obj, list):
+                        return input_obj.copy()
+                    else:
+                        if isinstance(input_obj, str):
+                            return Image.open(input_obj)
+                        else:
+                            raise TypeError(logger.error([3008, task_key, type(input_obj), type(str)]))
+                    raise TypeError(logger.error([3008, task_key, type(input_obj), type(list)]))
+                raise TypeError(logger.error([3008, task_key, type(input_obj), type(Image.Image)]))
+
+    def to_favicon(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'favicon'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                img = Image.open(input_filename)
+                img = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            img = input_obj.copy()
+            img = self.trans_object(input_obj, task_key)
         if self._config.is_default([task_key, 'size']):
             icon_sizes = [16, 24, 32, 48, 64, 128, 255]
             res = []
@@ -340,7 +377,7 @@ class ImageFileElf(DataFileElf):
                 self.to_output(task_key, img=img_resize, filename=output_filename)
             return img_resize
 
-    def splice(self, input_obj: list = None, silent: bool = False, **kwargs):
+    def splice(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'splice'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -351,11 +388,11 @@ class ImageFileElf(DataFileElf):
                 input_images = []
                 for i in range(num_img):
                     filename = self._config[task_key]['input'][i]
-                    img = Image.open(filename)
+                    img = self.trans_object(filename, task_key)
                     input_images.append(img)
         else:
             num_img = len(input_obj)
-            input_images = input_obj.copy()
+            input_images = self.trans_object(input_obj, task_key)
         if num_img > 0:
             output_filename = self._config[task_key]['output']
             gap = self._config[task_key]['gap']
@@ -512,17 +549,16 @@ class ImageFileElf(DataFileElf):
             logger.warning([3000])
             return None
 
-    def watermark(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
+    def watermark(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'watermark'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                img = Image.open(input_filename)
+                img = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            img = input_obj.copy()
+            img = self.trans_object(input_obj, task_key)
         output_filename = self._config[task_key]['output']
         font_draw = ImageFont.truetype(self._config[task_key]['font'], self._config[task_key]['font_size'])
         text = self._config[task_key]['text']
@@ -580,17 +616,9 @@ class ImageFileElf(DataFileElf):
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                image = cv2.imread(input_filename)
+                image = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            if isinstance(input_obj, np.ndarray):
-                image = input_obj.copy()
-            else:
-                if isinstance(input_obj, Image.Image):
-                    image = read_image(input_obj)
-                else:
-                    logger.warning([3007])
-                    raise TypeError
+            image = self.trans_object(input_obj, task_key)
         detector = cv2.QRCodeDetector()
         data, vertices_array, binary_qrcode = detector.detectAndDecode(image)
         if vertices_array is None:
@@ -646,17 +674,16 @@ class ImageFileElf(DataFileElf):
         res_img = Image.open(buf)
         return res_img
 
-    def resize(self, input_obj: Image.Image = None, silent: bool = False, **kwargs):
+    def resize(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'resize'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                img_ori = Image.open(input_filename)
+                img_ori = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            img_ori = input_obj.copy()
+            img_ori = self.trans_object(input_obj, task_key)
         output_filename = self._config[task_key]['output']
         width, height = img_ori.size
         quality = self._config[task_key]['quality']
@@ -674,17 +701,16 @@ class ImageFileElf(DataFileElf):
             self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
         return img_resize
 
-    def crop(self, input_obj: Image.Image = None,  silent: bool = False, **kwargs):
+    def crop(self, input_obj=None,  silent: bool = False, **kwargs):
         task_key = 'crop'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                img_ori = Image.open(input_filename)
+                img_ori = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            img_ori = input_obj.copy()
+            img_ori = self.trans_object(input_obj, task_key)
         left = self._config[task_key]['location'][0]
         top = self._config[task_key]['location'][1]
         right = self._config[task_key]['location'][2]
@@ -712,10 +738,9 @@ class ImageFileElf(DataFileElf):
             if self.is_default(task_key):
                 return None
             else:
-                input_filename = self._config[task_key]['input']
-                img_ori = cv2.imread(input_filename)
+                img_ori = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            img_ori = input_obj.copy()
+            img_ori = self.trans_object(input_obj, task_key)
         left = self._config[task_key]['location'][0]
         top = self._config[task_key]['location'][1]
         right = self._config[task_key]['location'][2]

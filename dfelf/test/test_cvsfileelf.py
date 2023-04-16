@@ -1030,6 +1030,43 @@ class TestCSVFileElf(unittest.TestCase):
         res = df_elf.read_content(result_filename)
         self.assertTrue(np.array_equal(result.fillna(""), res.fillna("")))
 
+    def test_merge_03(self):
+        df_elf = CSVFileElf()
+        input_filename_01 = os.path.join(cwd, 'sources', 'merge', 'cf_161505.csv')
+        input_filename_02 = os.path.join(cwd, 'sources', 'merge', 'fh_161505.csv')
+        config = {
+            'output': {
+                'name': 'merge_03.csv',
+                'BOM': False,
+                'non-numeric': []
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        result = df_elf.merge([input_filename_01, input_filename_02], **config)
+        result_filename = os.path.join(cwd, 'result', 'merge.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
+    def test_merge_04(self):
+        df_elf = CSVFileElf()
+        input_filename_01 = os.path.join(cwd, 'sources', 'merge', 'cf_161505.csv')
+        input_filename_02 = os.path.join(cwd, 'sources', 'merge', 'fh_161505.csv')
+        input_df_01 = pd.read_csv(input_filename_01, dtype=str)
+        config = {
+            'output': {
+                'name': 'merge_04.csv',
+                'BOM': False,
+                'non-numeric': []
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        result = df_elf.merge([input_df_01, input_filename_02], **config)
+        result_filename = os.path.join(cwd, 'result', 'merge.csv')
+        dist_filename = df_elf.get_output_path(config['output']['name'])
+        self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
+
 
 if __name__ == '__main__':
     unittest.main()  # pragma: no cover

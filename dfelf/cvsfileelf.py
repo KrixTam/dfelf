@@ -364,16 +364,38 @@ class CSVFileElf(DataFileElf):
         content = pd.read_csv(cvs_filename, dtype=str)
         return content
 
-    def add(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
+    def trans_object(self, input_obj, task_key):
+        if task_key == 'merge':
+            if isinstance(input_obj, list):
+                ret = []
+                for obj in input_obj:
+                    if isinstance(obj, str):
+                        ret.append(CSVFileElf.read_content(obj))
+                    else:
+                        if isinstance(obj, pd.DataFrame):
+                            ret.append(obj.copy())
+                        else:
+                            raise TypeError(logger.error([2005, task_key, type(obj), type(str), type(pd.DataFrame)]))
+                return ret
+            raise TypeError(logger.error([2004, task_key, type(input_obj), type(list)]))
+        else:
+            if isinstance(input_obj, pd.DataFrame):
+                return input_obj.copy()
+            else:
+                if isinstance(input_obj, str):
+                    return CSVFileElf.read_content(input_obj)
+            raise TypeError(logger.error([2006, task_key, type(input_obj), type(pd.DataFrame), type(str)]))
+
+    def add(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'add'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['base']['name'])
+                df_ori = self.trans_object(self._config[task_key]['base']['name'], task_key)
         else:
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         key_ori = self._config[task_key]['base']['key']
         if self._config[task_key]['base']['drop_duplicates']:
             df_ori = self.drop_duplicates(df_ori, key_ori)[0]
@@ -399,22 +421,20 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def join(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
+    def join(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'join'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['base'])
+                df_ori = self.trans_object(self._config[task_key]['base'], task_key)
         else:
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         files = self._config[task_key]['files']
         for file in files:
             df = CSVFileElf.read_content(file['name'])
             if len(file['mappings']) > 0:
-                # for key, value in file['mappings'].items():
-                #     df.rename(columns={key: value}, inplace=True)
                 df.rename(columns=file['mappings'], inplace=True)
             df_ori = df_ori.append(df)
         if silent:
@@ -423,16 +443,16 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def exclude(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
+    def exclude(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'exclude'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+                df_ori = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         exclusion = self._config[task_key]['exclusion']
         for e in exclusion:
             key = e['key']
@@ -484,16 +504,16 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def filter(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
+    def filter(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'filter'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
             if self.is_default(task_key):
                 return None
             else:
-                df_ori = CSVFileElf.read_content(self._config[task_key]['input'])
+                df_ori = self.trans_object(self._config[task_key]['input'], task_key)
         else:
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         filters = self._config[task_key]['filters']
         for f in filters:
             key = f['key']
@@ -545,7 +565,7 @@ class CSVFileElf(DataFileElf):
             self.to_output(task_key, df=df_ori)
         return df_ori
 
-    def split(self, input_obj: pd.DataFrame = None, silent: bool = False, **kwargs):
+    def split(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'split'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -553,10 +573,10 @@ class CSVFileElf(DataFileElf):
                 return None
             else:
                 input_filename = self._config[task_key]['input']
-                df_ori = CSVFileElf.read_content(input_filename)
+                df_ori = self.trans_object(input_filename, task_key)
         else:
             input_filename = '<内存对象>'
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         key_name = self._config[task_key]['key']
         columns = df_ori.columns
         res = []
@@ -575,7 +595,7 @@ class CSVFileElf(DataFileElf):
         else:
             raise KeyError(logger.error([2002, input_filename, key_name]))
 
-    def merge(self, input_obj: list = None, silent: bool = False, **kwargs):
+    def merge(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'merge'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -583,13 +603,9 @@ class CSVFileElf(DataFileElf):
                 return None
             else:
                 inputs = self._config[task_key]['input']
-                df_ori = []
-                for input_filename in inputs:
-                    df = CSVFileElf.read_content(input_filename)
-                    df_ori.append(df)
+                df_ori = self.trans_object(inputs, task_key)
         else:
-            inputs = '<内存对象>'
-            df_ori = input_obj.copy()
+            df_ori = self.trans_object(input_obj, task_key)
         mappings = self._config[task_key]['mappings']
         if len(mappings) > 0:
             for df in df_ori:

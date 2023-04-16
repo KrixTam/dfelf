@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
     name='dfelf',
-    version='0.1.12',
+    version='0.1.13',
     packages=['dfelf', 'dfelf.res', 'dfelf.res.Noto_Sans_SC'],
     package_data={'dfelf': ['LICENSE', './dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf', './dfelf/res/Noto_Sans_SC/OFL.txt']},
     include_package_data=True,
@@ -34,6 +34,7 @@ setup(
         'pdf2image>=1.14.0',
         'qrcode>=7.2',
         'opencv-python>=4.5.3.56',
-        'scikit-image>=0.19.2'
+        'scikit-image>=0.19.2',
+        'PyMuPDF>=1.21.1'
     ]
 )

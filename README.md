@@ -235,7 +235,7 @@ Image文件精灵用于日常对图片类文件的处理应用。相关方法如
 * **to_favicon**：把图片转化为favicon；对应的配置设定为*favicon*。
 > ImageFileElf.to_favicon(input_obj=None, silent: bool = False, **kwargs)
 * **splice**：将*input*中的图片文件拼接为一张图片；对应的配置设定为*splice*。
-> ImageFileElf.splice(input_obj=None, silent: bool = False, **kwargs)
+> ImageFileElf.splice(input_obj: list = None, silent: bool = False, **kwargs)
 * **watermark**：在指定的*x*、*y*坐标中增加水印文字；对应的配置设定为*watermark*。
 > ImageFileElf.watermark(input_obj=None, silent: bool = False, **kwargs)
 * **qrcode**：将*input*的字符串生成二维码；对应的配置设定为*qrcode*。

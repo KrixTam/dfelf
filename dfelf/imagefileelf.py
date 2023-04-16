@@ -326,22 +326,14 @@ class ImageFileElf(DataFileElf):
                 else:
                     if isinstance(input_obj, str):
                         return cv2.imread(input_obj)
-                    else:
-                        raise TypeError(logger.error([3008, task_key, type(input_obj), type(str)]))
-                raise TypeError(logger.error([3008, task_key, type(input_obj), type(np.ndarray)]))
+                raise TypeError(logger.error([3008, task_key, type(input_obj), str, np.ndarray]))
             else:
                 if isinstance(input_obj, Image.Image):
                     return input_obj.copy()
                 else:
-                    if isinstance(input_obj, list):
-                        return input_obj.copy()
-                    else:
-                        if isinstance(input_obj, str):
-                            return Image.open(input_obj)
-                        else:
-                            raise TypeError(logger.error([3008, task_key, type(input_obj), type(str)]))
-                    raise TypeError(logger.error([3008, task_key, type(input_obj), type(list)]))
-                raise TypeError(logger.error([3008, task_key, type(input_obj), type(Image.Image)]))
+                    if isinstance(input_obj, str):
+                        return Image.open(input_obj)
+                raise TypeError(logger.error([3008, task_key, type(input_obj), str, Image.Image]))
 
     def to_favicon(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'favicon'
@@ -377,7 +369,7 @@ class ImageFileElf(DataFileElf):
                 self.to_output(task_key, img=img_resize, filename=output_filename)
             return img_resize
 
-    def splice(self, input_obj=None, silent: bool = False, **kwargs):
+    def splice(self, input_obj: list = None, silent: bool = False, **kwargs):
         task_key = 'splice'
         self.set_config_by_task_key(task_key, **kwargs)
         if input_obj is None:
@@ -386,13 +378,15 @@ class ImageFileElf(DataFileElf):
             else:
                 num_img = len(self._config[task_key]['input'])
                 input_images = []
-                for i in range(num_img):
-                    filename = self._config[task_key]['input'][i]
-                    img = self.trans_object(filename, task_key)
+                for item in self._config[task_key]['input']:
+                    img = self.trans_object(item, task_key)
                     input_images.append(img)
         else:
             num_img = len(input_obj)
-            input_images = self.trans_object(input_obj, task_key)
+            input_images = []
+            for item in input_obj:
+                img = self.trans_object(item, task_key)
+                input_images.append(img)
         if num_img > 0:
             output_filename = self._config[task_key]['output']
             gap = self._config[task_key]['gap']

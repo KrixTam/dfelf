@@ -1067,6 +1067,52 @@ class TestCSVFileElf(unittest.TestCase):
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
 
+    def test_trans_object_error_01(self):
+        df_elf = CSVFileElf()
+        input_filename_01 = os.path.join(cwd, 'sources', 'merge', 'cf_161505.csv')
+        config = {
+            'output': {
+                'name': 'merge_04.csv',
+                'BOM': False,
+                'non-numeric': []
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        with self.assertRaises(TypeError):
+            df_elf.merge(input_filename_01, **config)
+
+    def test_trans_object_error_02(self):
+        df_elf = CSVFileElf()
+        config = {
+            'output': {
+                'name': 'merge_04.csv',
+                'BOM': False,
+                'non-numeric': []
+            },
+            'on': ['生效日期', '基金代码'],
+            'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
+        }
+        with self.assertRaises(TypeError):
+            df_elf.merge([1, 2], **config)
+
+    def test_trans_object_error_03(self):
+        df_elf = CSVFileElf()
+        config = {
+            'exclusion': [
+                {
+                    'key': 'key',
+                    'op': '<=',
+                    'value': 'D'
+                }
+            ],
+            'output': {
+                'name': 'test_exclude_lte_02.csv'
+            }
+        }
+        with self.assertRaises(TypeError):
+            df_elf.exclude(123, **config)
+
 
 if __name__ == '__main__':
     unittest.main()  # pragma: no cover

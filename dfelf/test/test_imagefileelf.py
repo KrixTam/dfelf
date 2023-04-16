@@ -779,6 +779,29 @@ class TestImageFileElf(unittest.TestCase):
         with self.assertRaises(TypeError):
             most_used_color(123, 1, 1, 3, 4)
 
+    def test_trans_object_error_01(self):
+        df_elf = ImageFileElf()
+        with self.assertRaises(TypeError):
+            df_elf.decode_qrcode(123)
+
+    def test_trans_object_error_02(self):
+        df_elf = ImageFileElf()
+        config = {
+            'output': 'fill_02.png',
+            'location': [385, 7, 784, 310]
+        }
+        with self.assertRaises(TypeError):
+            df_elf.fill(123, **config)
+
+    def test_trans_object_error_03(self):
+        df_elf = ImageFileElf()
+        config = {
+            'output': 'crop_02.png',
+            'location': [385, 7, 784, 310]
+        }
+        with self.assertRaises(TypeError):
+            df_elf.crop(123, **config)
+
 
 if __name__ == '__main__':
     unittest.main()  # pragma: no cover

@@ -237,7 +237,7 @@ class PDFFileElf(DataFileElf):
             else:
                 if isinstance(input_obj, Image.Image):
                     return input_obj.copy().convert('RGB')
-            raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(Image.Image)]))
+            raise TypeError(logger.error([4002, task_key, type(input_obj), str, Image.Image]))
         else:
             if task_key == 'replace_text':
                 if isinstance(input_obj, str):
@@ -247,7 +247,7 @@ class PDFFileElf(DataFileElf):
                         stream = input_obj.stream
                         stream.seek(0)
                         return fitz.open(stream=stream.read(), filetype='pdf')
-                raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(PdfFileReader)]))
+                raise TypeError(logger.error([4002, task_key, type(input_obj), str, PdfFileReader]))
             else:
                 if isinstance(input_obj, str):
                     if task_key in ['2image', 'merge']:
@@ -259,7 +259,7 @@ class PDFFileElf(DataFileElf):
                         stream = input_obj.stream
                         stream.seek(0)
                         return PdfFileReader(stream)
-                raise TypeError(logger.error([4002, task_key, type(input_obj), type(str), type(PdfFileReader)]))
+                raise TypeError(logger.error([4002, task_key, type(input_obj), str, PdfFileReader]))
 
     def reorganize(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'reorganize'

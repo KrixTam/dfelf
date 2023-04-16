@@ -375,16 +375,16 @@ class CSVFileElf(DataFileElf):
                         if isinstance(obj, pd.DataFrame):
                             ret.append(obj.copy())
                         else:
-                            raise TypeError(logger.error([2005, task_key, type(obj), type(str), type(pd.DataFrame)]))
+                            raise TypeError(logger.error([2005, task_key, type(obj), str, pd.DataFrame]))
                 return ret
-            raise TypeError(logger.error([2004, task_key, type(input_obj), type(list)]))
+            raise TypeError(logger.error([2004, task_key, type(input_obj), list]))
         else:
             if isinstance(input_obj, pd.DataFrame):
                 return input_obj.copy()
             else:
                 if isinstance(input_obj, str):
                     return CSVFileElf.read_content(input_obj)
-            raise TypeError(logger.error([2006, task_key, type(input_obj), type(pd.DataFrame), type(str)]))
+            raise TypeError(logger.error([2006, task_key, type(input_obj), pd.DataFrame, str]))
 
     def add(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'add'

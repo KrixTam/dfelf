@@ -232,6 +232,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.merge(**config))
         self.assertEqual(None, df_elf.remove(**config))
         self.assertEqual(None, df_elf.extract_images(**config))
+        self.assertEqual(None, df_elf.replace_text(**config))
 
     def test_error_read_image(self):
         with self.assertRaises(TypeError):
@@ -422,6 +423,34 @@ class TestPDFFileElf(unittest.TestCase):
         input_stream.close()
         result_filename = os.path.join(cwd, 'result', 'pdf', 'extract_images', 'test.02.png')
         self.assertTrue(is_same_image(df_elf.get_log_path(config['output'] + '000001.png'), result_filename))
+
+    def test_trans_object_error_01(self):
+        df_elf = PDFFileElf()
+        config = {
+            'output': 'mr_02.pdf'
+        }
+        img_01 = os.path.join(cwd, 'sources', '01.png')
+        img_02 = os.path.join(cwd, 'sources', '02.png')
+        input_imgs = [123, Image.open(img_02)]
+        with self.assertRaises(TypeError):
+            df_elf.image2pdf(input_imgs, True, **config)
+
+    def test_trans_object_error_02(self):
+        df_elf = PDFFileElf()
+        config = {
+            'output': 'test_02.pdf'
+        }
+        with self.assertRaises(TypeError):
+            df_elf.replace_text(123, True, **config)
+
+    def test_trans_object_error_03(self):
+        df_elf = PDFFileElf()
+        config = {
+            'output': 'extract_images_06_',
+            'pages': []
+        }
+        with self.assertRaises(TypeError):
+            df_elf.extract_images(123, True, **config)
 
 
 if __name__ == '__main__':

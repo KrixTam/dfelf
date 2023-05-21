@@ -4,6 +4,16 @@ import numpy as np
 import cv2
 from skimage.metrics import structural_similarity as ssim
 from PIL import Image
+import os
+import re
+
+try:
+    import importlib.resources as pkg_resources
+except ImportError:  # pragma: no cover
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources  # pragma: no cover
+from dfelf.res import Noto_Sans_SC
+DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
 
 # 0-999: Commons
 # 1000-1999: DataFileElf
@@ -95,3 +105,10 @@ def to_same_size(file_ori, file_todo, file_output):
     height = round(height_todo * 1.0 / width_todo * width_ori)
     img_resize = img_todo.resize((width, height), Image.ANTIALIAS)
     img_resize.save(file_output)
+
+
+chinese_checker = re.compile(u'[\u4e00-\u9fa5]')
+
+
+def contain_chinese(input_string: str):
+    return chinese_checker.search(input_string)

@@ -12,13 +12,14 @@ import imghdr
 import math
 from io import BytesIO
 from collections import Counter
-try:
-    import importlib.resources as pkg_resources
-except ImportError:  # pragma: no cover
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources  # pragma: no cover
-from dfelf.res import Noto_Sans_SC
-DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
+# try:
+#     import importlib.resources as pkg_resources
+# except ImportError:  # pragma: no cover
+#     # Try backported to PY<37 `importlib_resources`.
+#     import importlib_resources as pkg_resources  # pragma: no cover
+# from dfelf.res import Noto_Sans_SC
+# DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
+from dfelf.commons import DEFAULT_FONT
 
 
 def most_used_color(img, left: int, upper: int, width: int, height: int):

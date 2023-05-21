@@ -1,4 +1,5 @@
 import PyPDF2.generic
+import moment
 from PIL import Image
 from PyPDF2.pdf import PdfFileWriter, PdfFileReader
 from pdf2image import convert_from_bytes
@@ -8,8 +9,19 @@ from dfelf.commons import logger, is_same_image
 from io import BytesIO
 import shutil
 import fitz
+from dfelf.commons import DEFAULT_FONT, contain_chinese
+# import pdfkit
+from bs4 import BeautifulSoup
+import re
+from PyPDF2.generic import EncodedStreamObject
+import subprocess
+from moment import moment
+import os
 
 HEX_REG = '{0:0{1}x}'
+SERIF = 'serif'
+MONO_SPACE = 'monospace'
+IGNORE_KEYWORDS = [SERIF, MONO_SPACE]
 
 
 def is_same_pdf(file_1, file_2, ext: str = 'png', dpi: int = 300):
@@ -61,6 +73,9 @@ class PDFFileElf(DataFileElf):
 
     def __init__(self, output_dir=None, output_flag=True):
         super().__init__(output_dir, output_flag)
+        self._temp_dir = self.get_log_path(str(moment().unix()))
+        if not os.path.exists(self._temp_dir):
+            os.makedirs(self._temp_dir)
 
     def init_config(self):
         self._config = Config({
@@ -241,16 +256,24 @@ class PDFFileElf(DataFileElf):
         else:
             if task_key == 'replace_text':
                 if isinstance(input_obj, str):
-                    return fitz.open(input_obj)
+                    new_input_obj = fitz.open(input_obj)
                 else:
                     if isinstance(input_obj, PdfFileReader):
                         stream = input_obj.stream
                         stream.seek(0)
-                        return fitz.open(stream=stream.read(), filetype='pdf')
-                raise TypeError(logger.error([4002, task_key, type(input_obj), str, PdfFileReader]))
+                        new_input_obj = fitz.open(stream=stream.read(), filetype='pdf')
+                    else:
+                        raise TypeError(logger.error([4002, task_key, type(input_obj), str, PdfFileReader]))
+                output_filename = os.path.join(self._temp_dir, self._config[task_key]['output'])
+                new_input_obj.ez_save(output_filename)
+                command = 'python -m fitz extract -fonts -output ' + self._temp_dir + ' ' + output_filename
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+                process.wait()
+                print(process.returncode)
+                return new_input_obj
             else:
                 if isinstance(input_obj, str):
-                    if task_key in ['2image', 'merge']:
+                    if task_key in ['2image', 'merge', 'replace_text_01']:
                         return PdfFileReader(open(input_obj, 'rb'), strict=False)
                     else:
                         return PdfFileReader(open(input_obj, 'rb'))
@@ -260,6 +283,15 @@ class PDFFileElf(DataFileElf):
                         stream.seek(0)
                         return PdfFileReader(stream)
                 raise TypeError(logger.error([4002, task_key, type(input_obj), str, PdfFileReader]))
+
+    def get_font_file(self, font_name):
+        files = [f for f in os.listdir(self._temp_dir) if os.path.isfile(os.path.join(self._temp_dir, f))]
+        result = None
+        for file_name in files:
+            if re.search(font_name + '$', os.path.splitext(file_name)[0].split('-')[0]):
+                result = os.path.join(self._temp_dir, file_name)
+                break
+        return result
 
     def reorganize(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'reorganize'
@@ -568,6 +600,155 @@ class PDFFileElf(DataFileElf):
                 res.append(image)
         return res
 
+    def replace_text_02(self, input_obj=None, silent: bool = False, **kwargs):
+        task_key = 'replace_text'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
+        else:
+            pdf_file = self.trans_object(input_obj, task_key)
+        pdf_writer = PdfFileWriter()
+        # Loop through each page in the PDF file
+        for page_num in range(pdf_file.getNumPages()):
+            # Get the current page object
+            page = pdf_file.getPage(page_num)
+            # Get the text of the page
+            text = page.extractText()
+            # Replace the "old_text" string with the "new_text" string
+            new_text = text.replace('old_text', 'new_text')
+            # Create a new page object with the updated text
+            new_page = PyPDF2.pdf.PageObject.createBlankPage(None, page.mediaBox.getWidth(), page.mediaBox.getHeight())
+            new_page.mergePage(page)
+            new_page.artBox = page.artBox
+            new_page.cropBox = page.cropBox
+            new_page.bleedBox = page.bleedBox
+            new_page.trimBox = page.trimBox
+            new_page.rotate = page.rotate
+            new_page.compressContentStreams()
+            # Loop through each annotation on the page and move it to the new page
+            for annot in page['/Annots']:
+                new_page['/Annots'].append(annot)
+            # Add the new page to the output PDF
+            pdf_writer.addPage(new_page)
+        output_filename = self.get_output_path(self._config[task_key]['output'])
+        if silent:
+            output_filename = self.get_log_path(self._config[task_key]['output'])
+        # Write the output PDF to a file
+        with open(output_filename, 'wb') as out_f:
+            pdf_writer.write(out_f)
+
+    def replace_text_01(self, input_obj=None, silent: bool = False, **kwargs):
+        task_key = 'replace_text'
+        self.set_config_by_task_key(task_key, **kwargs)
+        if input_obj is None:
+            if self.is_default(task_key):
+                return None
+            else:
+                pdf_file = self.trans_object(self._config[task_key]['input'], task_key)
+        else:
+            pdf_file = self.trans_object(input_obj, task_key)
+        pages = len(pdf_file)
+        rules = self._config[task_key]['rules']
+        for i in range(pages):
+            page = pdf_file[i]
+            print('page' + str(i))
+            page.insert_text((20, 20), ' ', fontname='nssc', fontfile=DEFAULT_FONT, render_mode=3)
+            for font in page.get_fonts():
+                page.insert_text((20, 20), ' ', fontname=font[4], render_mode=3)
+            soup = BeautifulSoup(page.get_text('html'))
+            target = soup.find_all('span', style=True)
+            font_names = []
+            font_sizes = []
+            for v in target:
+                style = {x[0]: x[1] for x in [t.split(':') for t in v['style'].split(';')]}
+                if 'font-family' in style:
+                    print(style['font-family'])
+                    temp_font_name = []
+                    for n in style['font-family'].split(','):
+                        if n in IGNORE_KEYWORDS:
+                            pass
+                        else:
+                            temp_font_name.append(n)
+                    font_name = ','.join(temp_font_name)
+                    # if SERIF in style['font-family']:
+                    #     for n in style['font-family'].split(','):
+                    #         # if n != SERIF:
+                    #         if n in IGNORE_KEYWORDS:
+                    #             pass
+                    #         else:
+                    #             temp_font_name.append(n)
+                    #     font_name = ','.join(temp_font_name)
+                    # else:
+                    #     for n in style['font-family'].split(','):
+                    #         # if n != SERIF:
+                    #         if n in IGNORE_KEYWORDS:
+                    #             pass
+                    #         else:
+                    #             temp_font_name.append(n)
+                    #     font_name = ','.join(temp_font_name)
+                    element = 'nssc'
+                    for font in page.get_fonts():
+                        if re.search(font_name + '$', font[3]):
+                            element = font[4]
+                            break
+                    font_names.append(element)
+                else:
+                    font_names.append('nssc')
+                if 'font-size' in style:
+                    font_size = style['font-size']
+                    font_size = int(float(re.findall(r'[-+]?\d*\.\d+|\d+', font_size)[0]))
+                    font_sizes.append(font_size)
+                else:
+                    font_sizes.append(11)
+            blocks = page.get_text("blocks")
+            for block in blocks:
+                i = 0
+                keyword_flag = False
+                font_name = font_names[i]
+                font_size = font_sizes[i]
+                i = i + 1
+                for rule in rules:
+                    # print('======')
+                    # print(block[4])
+                    if rule['keyword'] in block[4]:
+                        keyword_flag = True
+                        ori_word = block[4] + ''
+                        new_word = ori_word.replace(rule['keyword'], rule['substitute'])
+                        # print(ori_word)
+                        # print(new_word)
+                        page.add_redact_annot(block[:4], text=new_word)
+                        '''
+                        if contain_chinese(ori_word):
+                            page.add_redact_annot(block[:4], text=new_word, fontsize=font_size)
+                            # page.add_redact_annot(block[:4], text=new_word, fontname=font_name, fontsize=font_size)
+                        else:
+                            if contain_chinese(new_word):
+                                page.add_redact_annot(block[:4], text=new_word, fontname='nssc', fontsize=font_size)
+                            else:
+                                print(font_name)
+                                page.add_redact_annot(block[:4], text=new_word, fontsize=font_size)
+                                # page.add_redact_annot(block[:4], text=new_word, fontname=font_name, fontsize=font_size)
+                        '''
+                    else:
+                        # pass
+                        # page.add_redact_annot(block[:4], text=block[4], fontsize=font_size)
+                        if keyword_flag:
+                            page.add_redact_annot(block[:4], text=block[4])
+                            # page.add_redact_annot(block[:4], text=block[4], fontsize=font_size)
+                            # print(block[4])
+                            # page.add_redact_annot(block[:4], text=block[4], fontname=font_name, fontsize=font_size)
+                            keyword_flag = False
+            page.apply_redactions()
+        output_filename = self.get_output_path(self._config[task_key]['output'])
+        if silent:
+            output_filename = self.get_log_path(self._config[task_key]['output'])
+        pdf_file.ez_save(output_filename)
+        pdf_file.close()
+        return PdfFileReader(open(output_filename, 'rb'))
+
     def replace_text(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'replace_text'
         self.set_config_by_task_key(task_key, **kwargs)
@@ -580,18 +761,42 @@ class PDFFileElf(DataFileElf):
             pdf_file = self.trans_object(input_obj, task_key)
         pages = len(pdf_file)
         rules = self._config[task_key]['rules']
-        for i in pages:
+        for i in range(pages):
             page = pdf_file[i]
-            words = page.get_text("words")
-            for word in words:
-                for rule in rules:
-                    if rule['mode'] == 0:
-                        if rule['keyword'] in word[4]:
-                            page.add_redact_annot(word[:4], text=rule['substitute'])
-                    else:
-                        if rule['mode'] == 1:
-                            new_word = word[4].replace(rule['keyword'], rule['substitute'])
-                            page.add_redact_annot(word[:4], text=new_word)
+            page.insert_text((20, 20), ' ', fontname='nssc', fontfile=DEFAULT_FONT, render_mode=3)
+            # for font in page.get_fonts():
+            #     page.insert_text((20, 20), ' ', fontname=font[4], render_mode=3)
+            for rule in rules:
+                rl = page.search_for(rule['keyword'])
+                for rect in rl:
+                    blocks = page.get_text('dict', clip=rect)["blocks"]
+                    span = blocks[0]['lines'][0]['spans'][0]
+                    font_name = 'nssc'
+                    font_size = span['size']
+                    color = span['color']
+                    origin = fitz.Point(span['origin'])
+                    for font in page.get_fonts():
+                        if re.search(span['font'] + '$', font[3]):
+                            font_name = font[4]
+                            print(font)
+                            break
+                    # block = page.get_text('blocks', clip=rect)[0]
+                    # ori_word = block[4] + ''
+                    # new_word = ori_word.replace(rule['keyword'], rule['substitute'])
+                    # print(ori_word)
+                    # print(new_word)
+                    # page.add_redact_annot(block[:4], text=rule['substitute'], fontname=font_name, fontsize=font_size)
+                    page.add_redact_annot(rect, text=rule['substitute'], fontsize=font_size)
+                    # page.add_redact_annot(rect, text=rule['substitute'], fontname=font_name, fontsize=font_size)
+                    # font_name = span['font']
+                    # font_file = self.get_font_file(font_name)
+                    # page.add_redact_annot(rect)
+                    # page.apply_redactions()
+                    # page.insert_text((20, 20), ' ', fontname=font_name, fontfile=font_file, render_mode=3)
+                    # text_length = fitz.get_text_length(rule['substitute'], fontname=font_name, fontsize=font_size)
+                    # font_size = font_size * rect.width / text_length
+                    # print(font_size)
+                    # page.insert_text(origin, rule['substitute'], fontname='nssc', fontsize=font_size, color=color)
             page.apply_redactions()
         output_filename = self.get_output_path(self._config[task_key]['output'])
         if silent:

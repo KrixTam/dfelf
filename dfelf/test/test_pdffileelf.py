@@ -452,6 +452,75 @@ class TestPDFFileElf(unittest.TestCase):
         with self.assertRaises(TypeError):
             df_elf.extract_images(123, True, **config)
 
+    def test_replace_text_01(self):
+        df_elf = PDFFileElf()
+        output_filename = 'replace_text_01.pdf'
+        config = {
+            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
+            'output': output_filename,
+            'rules': [
+                {
+                    'keyword': 'Python 2',
+                    'substitute': '「你好Python2」'
+                }
+            ]
+        }
+        df_elf.replace_text(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
+
+    def test_replace_text_02(self):
+        df_elf = PDFFileElf()
+        output_filename = 'replace_text_02.pdf'
+        config = {
+            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
+            'output': output_filename,
+            'rules': [
+                {
+                    'keyword': 'Python 2',
+                    'substitute': 'Python 9'
+                }
+            ]
+        }
+        df_elf.replace_text(**config)
+        # result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
+        # self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
+
+    def test_replace_text_03(self):
+        df_elf = PDFFileElf()
+        output_filename = 'replace_text_03.pdf'
+        config = {
+            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
+            'output': output_filename,
+            'rules': [
+                {
+                    'keyword': 'Python 2',
+                    'mode': 1,
+                    'substitute': 'Python 29'
+                }
+            ]
+        }
+        df_elf.replace_text(**config)
+        # result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
+        # self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
+
+    def test_replace_text_06(self):
+        df_elf = PDFFileElf()
+        config = {
+            # 'input': os.path.join(cwd, 'result', 'pdf', '前高瓴消费负责人李岳：新一轮周期启动，人生重要做多窗口.pdf'),
+            'input': os.path.join(cwd, 'result', 'pdf', 'replace_text_02.pdf'),
+            'output': 'replace_text_02.pdf',
+            'rules': [
+                {
+                    'keyword': '更多详询+VX',
+                    'mode': 0,
+                    'substitute': ''
+                }
+            ]
+        }
+        df_elf.replace_text(**config)
+
+
 
 if __name__ == '__main__':
     unittest.main()  # pragma: no cover

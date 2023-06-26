@@ -2,6 +2,7 @@ import os
 import hashlib
 from abc import ABCMeta, abstractmethod
 from dfelf.commons import logger
+from moment import moment
 
 
 class DataFileElf(metaclass=ABCMeta):
@@ -14,6 +15,7 @@ class DataFileElf(metaclass=ABCMeta):
         self._log_path = self.get_filename_with_path('log')
         self._output_path = None
         self.set_output(output_dir)
+        self._temp_dir = self.get_log_path(str(moment().unix()))
         self.init_dir()
 
     def shutdown_output(self):
@@ -35,6 +37,8 @@ class DataFileElf(metaclass=ABCMeta):
             os.makedirs(self._log_path)
         if not os.path.exists(self._output_path):
             os.makedirs(self._output_path)
+        if not os.path.exists(self._temp_dir):
+            os.makedirs(self._temp_dir)
 
     def get_filename_with_path(self, filename):
         return os.path.join(self._cwd, filename)

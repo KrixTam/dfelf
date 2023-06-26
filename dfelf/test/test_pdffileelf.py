@@ -1,11 +1,12 @@
 import os
 import unittest
 from dfelf import PDFFileElf
-from PIL import Image, ImageChops
+from PIL import Image
 from PyPDF2.pdf import PdfFileReader
-from dfelf.commons import is_same_image, to_same_size, read_image
+from dfelf.commons import is_same_image, to_same_size, read_image, contain_chinese
 from dfelf.pdffileelf import is_same_pdf
 from moment import moment
+from dfelf.test.utils import get_files
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -232,7 +233,8 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.merge(**config))
         self.assertEqual(None, df_elf.remove(**config))
         self.assertEqual(None, df_elf.extract_images(**config))
-        self.assertEqual(None, df_elf.replace_text(**config))
+        self.assertEqual(None, df_elf.remove_watermark(**config))
+        self.assertEqual(None, df_elf.extract_fonts(**config))
 
     def test_error_read_image(self):
         with self.assertRaises(TypeError):
@@ -441,7 +443,7 @@ class TestPDFFileElf(unittest.TestCase):
             'output': 'test_02.pdf'
         }
         with self.assertRaises(TypeError):
-            df_elf.replace_text(123, True, **config)
+            df_elf.extract_fonts(123, True, **config)
 
     def test_trans_object_error_03(self):
         df_elf = PDFFileElf()
@@ -452,74 +454,78 @@ class TestPDFFileElf(unittest.TestCase):
         with self.assertRaises(TypeError):
             df_elf.extract_images(123, True, **config)
 
-    def test_replace_text_01(self):
-        df_elf = PDFFileElf()
-        output_filename = 'replace_text_01.pdf'
-        config = {
-            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
-            'output': output_filename,
-            'rules': [
-                {
-                    'keyword': 'Python 2',
-                    'substitute': '「你好Python2」'
-                }
-            ]
-        }
-        df_elf.replace_text(**config)
-        result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
-        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
-
-    def test_replace_text_02(self):
-        df_elf = PDFFileElf()
-        output_filename = 'replace_text_02.pdf'
-        config = {
-            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
-            'output': output_filename,
-            'rules': [
-                {
-                    'keyword': 'Python 2',
-                    'substitute': 'Python 9'
-                }
-            ]
-        }
-        df_elf.replace_text(**config)
-        # result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
-        # self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
-
-    def test_replace_text_03(self):
-        df_elf = PDFFileElf()
-        output_filename = 'replace_text_03.pdf'
-        config = {
-            'input': os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf'),
-            'output': output_filename,
-            'rules': [
-                {
-                    'keyword': 'Python 2',
-                    'mode': 1,
-                    'substitute': 'Python 29'
-                }
-            ]
-        }
-        df_elf.replace_text(**config)
-        # result_filename = os.path.join(cwd, 'result', 'pdf', 'replace_text', output_filename)
-        # self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
-
-    def test_replace_text_06(self):
+    def test_trans_object_error_04(self):
         df_elf = PDFFileElf()
         config = {
-            # 'input': os.path.join(cwd, 'result', 'pdf', '前高瓴消费负责人李岳：新一轮周期启动，人生重要做多窗口.pdf'),
-            'input': os.path.join(cwd, 'result', 'pdf', 'replace_text_02.pdf'),
-            'output': 'replace_text_02.pdf',
-            'rules': [
-                {
-                    'keyword': '更多详询+VX',
-                    'mode': 0,
-                    'substitute': ''
-                }
-            ]
+            'output': 'test_02.pdf'
         }
-        df_elf.replace_text(**config)
+        with self.assertRaises(TypeError):
+            df_elf.remove_watermark(123, True, **config)
 
+    def test_contain_chinese_01(self):
+        self.assertTrue(contain_chinese('123你好abc'))
+
+    def test_contain_chinese_02(self):
+        self.assertFalse(contain_chinese('123abc'))
+
+    def test_extract_fonts_01(self):
+        df_elf = PDFFileElf()
+        output_dir = 'extract_fonts_01'
+        ori_filename = 'dive-into-python3-part.pdf'
+        config = {
+            'input': os.path.join(cwd, 'result', 'pdf', ori_filename),
+            'output': output_dir
+        }
+        result = ['PXAAAA+Georgia,Bold-25.ttf',
+                  'PXAAAB+FreeSerif-28.ttf',
+                  'PXAAAC+GillSansMT,Italic-7.ttf',
+                  'PXAAAD+GillSansMT-10.ttf',
+                  'PXAAAF+TimesNewRoman-36.ttf',
+                  'PXAAAG+AndaleMono-15.ttf']
+        ec = df_elf.extract_fonts(**config)
+        self.assertEqual(ec, 0)
+        font_files = get_files(df_elf.get_output_path(config['output']))
+        font_files.remove(ori_filename)
+        self.assertEqual(len(font_files), len(result))
+        all_true = True
+        for f in font_files:
+            if f in result:
+                pass
+            else:
+                all_true = False  # pragma: no cover
+                break  # pragma: no cover
+        self.assertTrue(all_true)
+
+    def test_extract_fonts_02(self):
+        df_elf = PDFFileElf()
+        output_dir = 'extract_fonts_02'
+        ori_filename = 'dive-into-python3-part.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', ori_filename)
+        config = {
+            'input': input_filename,
+            'output': output_dir
+        }
+        result = ['PXAAAA+Georgia,Bold-25.ttf',
+                  'PXAAAB+FreeSerif-28.ttf',
+                  'PXAAAC+GillSansMT,Italic-7.ttf',
+                  'PXAAAD+GillSansMT-10.ttf',
+                  'PXAAAF+TimesNewRoman-36.ttf',
+                  'PXAAAG+AndaleMono-15.ttf']
+        input_stream = open(input_filename, 'rb')
+        input_pdf = PdfFileReader(input_stream)
+        ec = df_elf.extract_fonts(input_pdf, True, **config)
+        self.assertEqual(ec, 0)
+        font_files = get_files(df_elf.get_log_path(config['output']))
+        font_files.remove(ori_filename)
+        self.assertEqual(len(font_files), len(result))
+        all_true = True
+        for f in font_files:
+            if f in result:
+                pass
+            else:
+                all_true = False  # pragma: no cover
+                break  # pragma: no cover
+        self.assertTrue(all_true)
 
 
 if __name__ == '__main__':

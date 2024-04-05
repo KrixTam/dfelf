@@ -103,7 +103,7 @@ def to_same_size(file_ori, file_todo, file_output):
     width_todo, height_todo = img_todo.size
     width = width_ori
     height = round(height_todo * 1.0 / width_todo * width_ori)
-    img_resize = img_todo.resize((width, height), Image.ANTIALIAS)
+    img_resize = img_todo.resize((width, height), Image.LANCZOS)
     img_resize.save(file_output)
 
 

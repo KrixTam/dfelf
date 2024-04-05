@@ -28,9 +28,9 @@ setup(
     install_requires=[
         'pymoment>=0.0.6',
         'ni-config>=0.0.15',
-        'pandas>=0.25.2',
+        'pandas>=2.2.1',
         'PyPDF2>=1.26.0',
-        'Pillow>=5.2.0',
+        'Pillow>=10.3.0',
         'pdf2image>=1.14.0',
         'qrcode>=7.2',
         'opencv-python>=4.5.3.56',

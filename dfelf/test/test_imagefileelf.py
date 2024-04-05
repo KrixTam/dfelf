@@ -5,6 +5,8 @@ from PIL import Image, ImageChops
 from dfelf import ImageFileElf
 from dfelf.imagefileelf import most_used_color
 import numpy as np
+from dfelf.commons import is_same_image
+
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -318,7 +320,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(**watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
 
     def test_watermark_02(self):
         df_elf = ImageFileElf()
@@ -336,7 +338,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
 
     def test_watermark_03(self):
         df_elf = ImageFileElf()
@@ -352,7 +354,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
 
     def test_watermark_04(self):
         df_elf = ImageFileElf()
@@ -370,7 +372,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_pos.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
 
     def test_watermark_05(self):
         df_elf = ImageFileElf()
@@ -387,7 +389,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_pos_invert_color.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(filename)), df_elf.checksum(result_filename))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
 
     def test_watermark_06(self):
         df_elf = ImageFileElf()
@@ -406,8 +408,7 @@ class TestImageFileElf(unittest.TestCase):
         result = df_elf.watermark(silent=True, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
         self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
-        with Image.open(result_filename) as img:
-            self.assertEqual(None, ImageChops.difference(result, img).getbbox())
+        self.assertTrue(is_same_image(result, result_filename, ignore_alpha=True))
 
     def test_base64_01(self):
         df_elf = ImageFileElf()

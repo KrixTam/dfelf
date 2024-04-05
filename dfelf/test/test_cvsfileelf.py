@@ -4,6 +4,8 @@ import pandas as pd
 import unittest
 from dfelf import CSVFileElf
 import numpy as np
+from random import random
+
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 
@@ -45,7 +47,7 @@ class TestCSVFileElf(unittest.TestCase):
             df = CSVFileElf.read_content(os.path.join(cwd, 'sources', 'fof', filename))
             df.sort_values(by='日期', inplace=True)
             df = df[(df['日期'] >= '2022-06-16') & (df['日期'] <= '2022-07-22')]
-            df_all = df_all.append(df[columns])
+            df_all = pd.concat([df_all, df[columns]])
         res = df_elf.drop_duplicates(df_all, columns)[0]
         self.assertEqual(res.shape[0], 27)
         self.assertEqual(res.iloc[0]['日期'], '2022-06-16')
@@ -986,7 +988,7 @@ class TestCSVFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.merge(**config))
 
     def test_set_output(self):
-        output_dir = os.path.join('output', 'test')
+        output_dir = os.path.join('output', 'test' + str(random()))
         self.assertFalse(os.path.exists(output_dir))
         df_elf = CSVFileElf(output_dir=output_dir)
         self.assertTrue(os.path.exists(output_dir))

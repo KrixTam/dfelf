@@ -436,7 +436,7 @@ class CSVFileElf(DataFileElf):
             df = CSVFileElf.read_content(file['name'])
             if len(file['mappings']) > 0:
                 df.rename(columns=file['mappings'], inplace=True)
-            df_ori = df_ori.append(df)
+            df_ori = pd.concat([df_ori, df])
         if silent:
             pass
         else:
@@ -614,7 +614,7 @@ class CSVFileElf(DataFileElf):
         df_on = pd.DataFrame([], columns=on_cols)
         all_cols = []
         for df in df_ori:
-            df_on = df_on.append(df[on_cols])
+            df_on = pd.concat([df_on, df[on_cols]])
             all_cols = all_cols + list(set(df.columns) - set(all_cols))
         all_cols.sort()
         for col in on_cols:

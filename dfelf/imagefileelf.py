@@ -351,18 +351,18 @@ class ImageFileElf(DataFileElf):
             res = []
             if silent:
                 for x in icon_sizes:
-                    img_resize = img.resize((x, x), Image.ANTIALIAS)
+                    img_resize = img.resize((x, x), Image.LANCZOS)
                     res.append(img_resize)
             else:
                 for x in icon_sizes:
-                    img_resize = img.resize((x, x), Image.ANTIALIAS)
+                    img_resize = img.resize((x, x), Image.LANCZOS)
                     output_filename = 'favicon' + str(x) + '.ico'
                     self.to_output(task_key, img=img_resize, filename=output_filename)
                     res.append(img_resize)
             return res
         else:
             favicon_size = self._config[task_key]['size']
-            img_resize = img.resize((favicon_size, favicon_size), Image.ANTIALIAS)
+            img_resize = img.resize((favicon_size, favicon_size), Image.LANCZOS)
             if silent:
                 pass
             else:
@@ -404,7 +404,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_height = int(img.size[1] * width / img.size[0])
                     height_img = height_img + resize_height + gap
-                    images.append(img.resize((width, resize_height), Image.ANTIALIAS))
+                    images.append(img.resize((width, resize_height), Image.LANCZOS))
                     y = y + resize_height + gap
                     locations.append(y)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -427,7 +427,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_width = int(img.size[0] * height / img.size[1])
                     width_img = width_img + resize_width + gap
-                    images.append(img.resize((resize_width, height), Image.ANTIALIAS))
+                    images.append(img.resize((resize_width, height), Image.LANCZOS))
                     x = x + resize_width + gap
                     locations.append(x)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -500,7 +500,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_height = int(img.size[1] * min_width / img.size[0])
                     height_img = height_img + resize_height + gap
-                    images.append(img.resize((min_width, resize_height), Image.ANTIALIAS))
+                    images.append(img.resize((min_width, resize_height), Image.LANCZOS))
                     y = y + resize_height + gap
                     locations.append(y)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -527,7 +527,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_width = int(img.size[0] * min_height / img.size[1])
                     width_img = width_img + resize_width + gap
-                    images.append(img.resize((resize_width, min_height), Image.ANTIALIAS))
+                    images.append(img.resize((resize_width, min_height), Image.LANCZOS))
                     x = x + resize_width + gap
                     locations.append(x)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -689,7 +689,7 @@ class ImageFileElf(DataFileElf):
         else:
             width = self._config[task_key]['width']
             height = self._config[task_key]['height']
-        img_resize = img_ori.resize((width, height), Image.ANTIALIAS)
+        img_resize = img_ori.resize((width, height), Image.LANCZOS)
         if silent:
             pass
         else:

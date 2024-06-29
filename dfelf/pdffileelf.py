@@ -1,7 +1,7 @@
 import PyPDF2.generic
 import moment
 from PIL import Image
-from PyPDF2.pdf import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from pdf2image import convert_from_bytes
 from ni.config import Config
 from dfelf import DataFileElf

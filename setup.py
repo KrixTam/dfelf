@@ -30,7 +30,7 @@ setup(
         'pymoment>=0.0.6',
         'ni-config>=0.0.15',
         'pandas>=2.2.1',
-        'PyPDF2>=1.26.0',
+        'PyPDF2>=2.10.5',
         'Pillow>=10.3.0',
         'pdf2image>=1.14.0',
         'qrcode>=7.2',

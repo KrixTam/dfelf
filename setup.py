@@ -5,9 +5,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
     name='dfelf',
-    version='0.1.13',
+    version='0.2.0',
     packages=['dfelf', 'dfelf.res', 'dfelf.res.Noto_Sans_SC'],
-    package_data={'dfelf': ['LICENSE', './dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf', './dfelf/res/Noto_Sans_SC/OFL.txt']},
+    package_data={
+        'dfelf': [
+            'LICENSE',
+            './dfelf/res/Noto_Sans_SC/NotoSansSC-Regular.otf',
+            './dfelf/res/Noto_Sans_SC/OFL.txt'
+        ]
+    },
     include_package_data=True,
     url='https://github.com/KrixTam/dfelf',
     license='MIT',
@@ -29,13 +35,13 @@ setup(
     install_requires=[
         'pymoment>=0.0.6',
         'ni-config>=0.0.15',
-        'pandas>=2.2.1',
-        'PyPDF2>=2.10.5',
+        'pandas>=2.2.2',
+        # 'PyPDF2>=2.10.5',
         'Pillow>=10.3.0',
-        'pdf2image>=1.14.0',
+        # 'pdf2image>=1.14.0',
         'qrcode>=7.2',
-        'opencv-python>=4.5.3.56',
-        'scikit-image>=0.19.2',
-        'PyMuPDF>=1.21.1'
+        'opencv-python>=4.10.0.84',
+        'scikit-image>=0.23.2',
+        'PyMuPDF>=1.24.6'
     ]
 )

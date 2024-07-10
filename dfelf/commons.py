@@ -1,7 +1,9 @@
 from ni.config.tools import Logger
 import math
 import numpy as np
-import cv2
+# import cv2
+from skimage.io import imread
+from skimage.color import rgb2gray, rgba2rgb
 from skimage.metrics import structural_similarity as ssim
 from PIL import Image
 import os
@@ -23,7 +25,7 @@ DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regul
 
 
 ERROR_DEF = {
-    '0': '[{0}] 图像相似度不符合要求（{3}），MSE为{1}，SSIM为{2}。',
+    '0': '[{0}] 图像相似度不符合要求（{3}, {4}），MSE为{1}，SSIM为{2}。',
     '1': '[{0}] read_image中的参数"image_file"类型错误，应为Image.Image或者str。',
     '1000': '[{0}] "{1}"没有设置正确（不能直接使用默认设置值），请设置后重试。',
     '2000': '[{0}] 存在需要进行去重处理的值，详细请查阅文件：{1}\n{2}',
@@ -45,28 +47,34 @@ ERROR_DEF = {
     '3009': '[{0}] ImageFileElf.decode_qrcode中的参数"input_obj"指向的文件"{1}"不存在。',
     '4000': '[{0}] PDF文件"{1}"中不存在第{2}的内容，请检查PDF原文档的内容正确性或者配置正确性。',
     '4001': '[{0}] "from_images"没有设置，请设置后重试。',
-    '4002': '[{0}] "{1}"的输入对象参数"input_obj"类型({2})错误，应为{3}或{4}。'
+    '4002': '[{0}] "{1}"的输入对象参数"input_obj"类型({2})错误，应为{3}或{4}。',
+    '4003': '[{0}] 文档<"{1}">一共有{2}页，不存在第{3}页。',
+    '4004': '[{0}] 文档<"{1}">的页码参数"pages"设置错误，请检查后重新运行程序。',
+    '4005': '[{0}] open_pdf的参数类型({1})错误，应为pymupdf.Document或str。'
 }
 
 logger = Logger(ERROR_DEF, 'dfelf')
 
 
-def is_same_image(file_1, file_2, rel_tol=0.0001, ignore_alpha=False):
+def is_same_image(file_1, file_2, rel_tol_mse=0.015, rel_tol_ssim=0.05, ssim_only=False):
     m, s = mse_n_ssim(file_1, file_2)
-    if ignore_alpha:
-        flag = math.isclose(s, 1.0, rel_tol=rel_tol)
+    if ssim_only:
+        flag = math.isclose(s, 1.0, rel_tol=rel_tol_ssim)
     else:
-        flag = math.isclose(1.0 - m, 1.0, rel_tol=rel_tol) and math.isclose(s, 1.0, rel_tol=rel_tol)
+        flag = math.isclose(1.0 - m, 1.0, rel_tol=rel_tol_mse) and math.isclose(s, 1.0, rel_tol=rel_tol_ssim)
     if flag:
         return True
     else:
-        logger.warning([0, m, s, rel_tol])
+        logger.warning([0, m, s, rel_tol_mse, rel_tol_ssim])
         return False
 
 
 def read_image(image_file):
     if isinstance(image_file, str):
-        return cv2.imread(image_file)
+        image = imread(image_file)
+        if len(image.shape) == 3 and image.shape[2] == 4:
+            image = rgba2rgb(image)
+        return image
     else:
         if isinstance(image_file, Image.Image):
             open_cv_image = np.array(image_file.convert('RGB'))
@@ -81,18 +89,16 @@ def read_image(image_file):
 def mse_n_ssim(file_1, file_2):
     img_1 = read_image(file_1)
     img_2 = read_image(file_2)
-    # the 'Mean Squared Error' between the two images is the
-    # sum of the squared difference between the two images;
-    # NOTE: the two images must have the same dimension
-    err = np.sum((img_1.astype("float") - img_2.astype("float")) ** 2)
-    err /= float(img_1.shape[0] * img_1.shape[1])
-    # return the MSE, the lower the error, the more "similar"
-    # the two images are
-    mse = err
-    # Structural Similarity Index
-    img_1_gray = cv2.cvtColor(img_1, cv2.COLOR_BGR2GRAY)
-    img_2_gray = cv2.cvtColor(img_2, cv2.COLOR_BGR2GRAY)
-    (score, diff) = ssim(img_1_gray, img_2_gray, full=True)
+    mse = np.linalg.norm(img_1.astype(np.float64) - img_2.astype(np.float64)) / (img_1.shape[0] * img_1.shape[1])
+    if len(img_1.shape) == 3:
+        img_1_gray = rgb2gray(img_1)
+    else:
+        img_1_gray = img_1
+    if len(img_2.shape) == 3:
+        img_2_gray = rgb2gray(img_2)
+    else:
+        img_2_gray = img_2
+    (score, diff) = ssim(img_1_gray, img_2_gray, data_range=1.0, full=True)
     return mse, score
 
 
@@ -103,8 +109,11 @@ def to_same_size(file_ori, file_todo, file_output):
     width_todo, height_todo = img_todo.size
     width = width_ori
     height = round(height_todo * 1.0 / width_todo * width_ori)
-    img_resize = img_todo.resize((width, height), Image.LANCZOS)
+    img_resize = img_todo.resize((width, height), Image.Resampling.LANCZOS)
     img_resize.save(file_output)
+    img_ori.close()
+    img_todo.close()
+    img_resize.close()
 
 
 chinese_checker = re.compile(u'[\u4e00-\u9fa5]')

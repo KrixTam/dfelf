@@ -1,7 +1,6 @@
 from ni.config.tools import Logger
 import math
 import numpy as np
-# import cv2
 from skimage.io import imread
 from skimage.color import rgb2gray, rgba2rgb
 from skimage.metrics import structural_similarity as ssim
@@ -71,19 +70,23 @@ def is_same_image(file_1, file_2, rel_tol_mse=0.015, rel_tol_ssim=0.05, ssim_onl
 
 def read_image(image_file):
     if isinstance(image_file, str):
-        image = imread(image_file)
+        image = imread(image_file, plugin='pil')
         if len(image.shape) == 3 and image.shape[2] == 4:
             image = rgba2rgb(image)
-        return image
-    else:
-        if isinstance(image_file, Image.Image):
-            open_cv_image = np.array(image_file.convert('RGB'))
-            # 将RGB转换为BGR
-            open_cv_image = open_cv_image[:, :, ::-1].copy()
-            return open_cv_image
+        if image.dtype == np.uint8:
+            pass
         else:
-            logger.warning([1])
-            raise TypeError
+            image = np.uint8(image * 255)
+        return image
+    if isinstance(image_file, Image.Image):
+        open_cv_image = np.asarray(image_file.convert('RGB'))
+        # 将RGB转换为BGR
+        open_cv_image = open_cv_image[:, :, ::-1].copy()
+        return open_cv_image
+    if isinstance(image_file, np.ndarray):
+        return image_file.copy()
+    logger.warning([1])
+    raise TypeError
 
 
 def mse_n_ssim(file_1, file_2):

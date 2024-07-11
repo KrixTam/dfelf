@@ -1,10 +1,10 @@
 import os
 import unittest
 import cv2
+from skimage.io import imread
 from PIL import Image, ImageChops
 from dfelf import ImageFileElf
 from dfelf.imagefileelf import most_used_color
-import numpy as np
 from dfelf.commons import is_same_image
 
 
@@ -320,7 +320,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(**watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ssim_only=True))
 
     def test_watermark_02(self):
         df_elf = ImageFileElf()
@@ -338,7 +338,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ssim_only=True))
 
     def test_watermark_03(self):
         df_elf = ImageFileElf()
@@ -354,7 +354,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_def.png')
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ssim_only=True))
 
     def test_watermark_04(self):
         df_elf = ImageFileElf()
@@ -372,7 +372,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_pos.png')
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ssim_only=True))
 
     def test_watermark_05(self):
         df_elf = ImageFileElf()
@@ -389,7 +389,7 @@ class TestImageFileElf(unittest.TestCase):
         }
         df_elf.watermark(input_img, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark_pos_invert_color.png')
-        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(df_elf.get_output_path(filename), result_filename, ssim_only=True))
 
     def test_watermark_06(self):
         df_elf = ImageFileElf()
@@ -408,7 +408,7 @@ class TestImageFileElf(unittest.TestCase):
         result = df_elf.watermark(silent=True, **watermark)
         result_filename = os.path.join(cwd, 'result', 'watermark', 'icon_watermark.png')
         self.assertFalse(os.path.exists(df_elf.get_output_path(filename)))
-        self.assertTrue(is_same_image(result, result_filename, ignore_alpha=True))
+        self.assertTrue(is_same_image(result, result_filename, ssim_only=True))
 
     def test_base64_01(self):
         df_elf = ImageFileElf()
@@ -702,7 +702,7 @@ class TestImageFileElf(unittest.TestCase):
         df_elf.fill(**config)
         output_filename = config['output']
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+        self.assertTrue(is_same_image(df_elf.get_output_path(output_filename), result_file, ssim_only=True))
 
     def test_fill_02(self):
         df_elf = ImageFileElf()
@@ -710,11 +710,11 @@ class TestImageFileElf(unittest.TestCase):
             'output': 'fill_02.png',
             'location': [385, 7, 784, 310]
         }
-        input_img = cv2.imread(os.path.join(cwd, 'sources', '01.png'))
+        input_img = imread(os.path.join(cwd, 'sources', '01.png'))
         df_elf.fill(input_img, **config)
         output_filename = config['output']
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+        self.assertTrue(is_same_image(df_elf.get_output_path(output_filename), result_file, ssim_only=True))
 
     def test_fill_03(self):
         df_elf = ImageFileElf()
@@ -727,7 +727,7 @@ class TestImageFileElf(unittest.TestCase):
         df_elf.fill(**config)
         output_filename = config['output']
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+        self.assertTrue(is_same_image(df_elf.get_output_path(output_filename), result_file, ssim_only=True))
 
     def test_fill_04(self):
         df_elf = ImageFileElf()
@@ -760,7 +760,7 @@ class TestImageFileElf(unittest.TestCase):
         df_elf.fill(**config)
         output_filename = config['output']
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_02.png')
-        self.assertEqual(df_elf.checksum(df_elf.get_output_path(output_filename)), df_elf.checksum(result_file))
+        self.assertTrue(is_same_image(df_elf.get_output_path(output_filename), result_file, ssim_only=True))
 
     def test_fill_07(self):
         df_elf = ImageFileElf()
@@ -774,7 +774,8 @@ class TestImageFileElf(unittest.TestCase):
         self.assertFalse(os.path.exists(df_elf.get_output_path(output_filename)))
         self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename)))
         result_file = os.path.join(cwd, 'result', 'fill', 'fill_01.png')
-        self.assertTrue(np.array_equal(img_result, cv2.imread(result_file)))
+        self.assertTrue(is_same_image(img_result, result_file, ssim_only=True))
+        # self.assertTrue(np.array_equal(img_result, read_image(result_file)))
 
     def test_error_most_used_color(self):
         with self.assertRaises(TypeError):

@@ -1,5 +1,7 @@
 import os
 import cv2
+from moment import moment
+from skimage.io import imsave
 import base64
 import qrcode
 from string import Template
@@ -286,25 +288,23 @@ class ImageFileElf(DataFileElf):
         })
 
     def to_output(self, task_key, **kwargs):
+        if self._output_flag:
+            get_path = self.get_output_path
+        else:
+            get_path = self.get_log_path
         if task_key == 'base64':
-            if self._output_flag:
-                output_filename = self.get_output_path(self._config[task_key]['output'])
-            else:
-                output_filename = self.get_log_path(self._config[task_key]['output'])
+            output_filename = get_path(self._config[task_key]['output'])
             with open(output_filename, "wb") as fh:
                 fh.write(kwargs['content'])
         else:
-            if self._output_flag:
-                output_filename = self.get_output_path(kwargs['filename'])
-            else:
-                output_filename = self.get_log_path(kwargs['filename'])
+            output_filename = get_path(kwargs['output'])
             if task_key == 'fill':
-                cv2.imwrite(output_filename, kwargs['img'])
+                imsave(output_filename, kwargs['image'])
             else:
                 if task_key == 'resize':
-                    kwargs['img'].save(output_filename, quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
+                    kwargs['image'].save(output_filename, quality=kwargs['quality'], dpi=(kwargs['dpi'], kwargs['dpi']))
                 else:
-                    kwargs['img'].save(output_filename)
+                    kwargs['image'].save(output_filename)
 
     def trans_object(self, input_obj, task_key):
         if task_key == 'dqrcode':
@@ -317,16 +317,22 @@ class ImageFileElf(DataFileElf):
                 if isinstance(input_obj, np.ndarray):
                     return input_obj.copy()
                 else:
-                    if isinstance(input_obj, Image.Image):
-                        return read_image(input_obj)
+                    if str(type(input_obj)) == str(np.ndarray):
+                        return input_obj.copy()
+                    else:
+                        if isinstance(input_obj, Image.Image):
+                            temp_file = self.get_log_path('trans_' + str(moment().unix()) + '.png')
+                            input_obj.save(temp_file)
+                            input_img = cv2.imread(temp_file)
+                            return input_img
                 raise TypeError(logger.error([3007, type(input_obj)]))
         else:
             if task_key == 'fill':
                 if isinstance(input_obj, np.ndarray):
                     return input_obj.copy()
-                else:
-                    if isinstance(input_obj, str):
-                        return cv2.imread(input_obj)
+                if isinstance(input_obj, str):
+                    if os.path.exists(input_obj):
+                        return read_image(input_obj)
                 raise TypeError(logger.error([3008, task_key, type(input_obj), str, np.ndarray]))
             else:
                 if isinstance(input_obj, Image.Image):
@@ -351,23 +357,23 @@ class ImageFileElf(DataFileElf):
             res = []
             if silent:
                 for x in icon_sizes:
-                    img_resize = img.resize((x, x), Image.LANCZOS)
+                    img_resize = img.resize((x, x), Image.Resampling.LANCZOS)
                     res.append(img_resize)
             else:
                 for x in icon_sizes:
-                    img_resize = img.resize((x, x), Image.LANCZOS)
+                    img_resize = img.resize((x, x), Image.Resampling.LANCZOS)
                     output_filename = 'favicon' + str(x) + '.ico'
-                    self.to_output(task_key, img=img_resize, filename=output_filename)
+                    self.to_output(task_key, image=img_resize, output=output_filename)
                     res.append(img_resize)
             return res
         else:
             favicon_size = self._config[task_key]['size']
-            img_resize = img.resize((favicon_size, favicon_size), Image.LANCZOS)
+            img_resize = img.resize((favicon_size, favicon_size), Image.Resampling.LANCZOS)
             if silent:
                 pass
             else:
                 output_filename = 'favicon' + str(favicon_size) + '.ico'
-                self.to_output(task_key, img=img_resize, filename=output_filename)
+                self.to_output(task_key, image=img_resize, output=output_filename)
             return img_resize
 
     def splice(self, input_obj: list = None, silent: bool = False, **kwargs):
@@ -404,7 +410,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_height = int(img.size[1] * width / img.size[0])
                     height_img = height_img + resize_height + gap
-                    images.append(img.resize((width, resize_height), Image.LANCZOS))
+                    images.append(img.resize((width, resize_height), Image.Resampling.LANCZOS))
                     y = y + resize_height + gap
                     locations.append(y)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -415,7 +421,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
             elif self._config[task_key]['mode'].lower() == 'h':
                 height = self._config[task_key]['width']
@@ -427,7 +433,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_width = int(img.size[0] * height / img.size[1])
                     width_img = width_img + resize_width + gap
-                    images.append(img.resize((resize_width, height), Image.LANCZOS))
+                    images.append(img.resize((resize_width, height), Image.Resampling.LANCZOS))
                     x = x + resize_width + gap
                     locations.append(x)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -438,7 +444,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
             elif self._config[task_key]['mode'].lower() == 'av':
                 y = gap
@@ -461,7 +467,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
             elif self._config[task_key]['mode'].lower() == 'ah':
                 x = gap
@@ -484,7 +490,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
             elif self._config[task_key]['mode'].lower() == 'xv':
                 min_width = input_images[0].size[0]
@@ -500,7 +506,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_height = int(img.size[1] * min_width / img.size[0])
                     height_img = height_img + resize_height + gap
-                    images.append(img.resize((min_width, resize_height), Image.LANCZOS))
+                    images.append(img.resize((min_width, resize_height), Image.Resampling.LANCZOS))
                     y = y + resize_height + gap
                     locations.append(y)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -511,7 +517,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
             elif self._config[task_key]['mode'].lower() == 'xh':
                 min_height = input_images[0].size[1]
@@ -527,7 +533,7 @@ class ImageFileElf(DataFileElf):
                     img = input_images[i].copy()
                     resize_width = int(img.size[0] * min_height / img.size[1])
                     width_img = width_img + resize_width + gap
-                    images.append(img.resize((resize_width, min_height), Image.LANCZOS))
+                    images.append(img.resize((resize_width, min_height), Image.Resampling.LANCZOS))
                     x = x + resize_width + gap
                     locations.append(x)
                 ret_img = Image.new('RGBA', (width_img, height_img), bg_color)
@@ -538,7 +544,7 @@ class ImageFileElf(DataFileElf):
                 if silent:
                     pass
                 else:
-                    self.to_output(task_key, img=ret_img, filename=output_filename)
+                    self.to_output(task_key, image=ret_img, output=output_filename)
                 return ret_img
         else:
             logger.warning([3000])
@@ -578,7 +584,7 @@ class ImageFileElf(DataFileElf):
         if silent:
             pass
         else:
-            self.to_output(task_key, img=img, filename=output_filename)
+            self.to_output(task_key, image=img, output=output_filename)
         return img
 
     def qrcode(self, input_obj: str = None, silent: bool = False, **kwargs):
@@ -601,7 +607,7 @@ class ImageFileElf(DataFileElf):
         if silent:
             pass
         else:
-            self.to_output(task_key, img=qr_image, filename=output_filename)
+            self.to_output(task_key, image=qr_image, output=output_filename)
         return qr_image.get_image()
 
     def decode_qrcode(self, input_obj=None, **kwargs):
@@ -614,6 +620,7 @@ class ImageFileElf(DataFileElf):
                 image = self.trans_object(self._config[task_key]['input'], task_key)
         else:
             image = self.trans_object(input_obj, task_key)
+            # image = read_image(input_obj)
         detector = cv2.QRCodeDetector()
         data, vertices_array, binary_qrcode = detector.detectAndDecode(image)
         if vertices_array is None:
@@ -689,11 +696,11 @@ class ImageFileElf(DataFileElf):
         else:
             width = self._config[task_key]['width']
             height = self._config[task_key]['height']
-        img_resize = img_ori.resize((width, height), Image.LANCZOS)
+        img_resize = img_ori.resize((width, height), Image.Resampling.LANCZOS)
         if silent:
             pass
         else:
-            self.to_output(task_key, img=img_resize, filename=output_filename, quality=quality, dpi=dpi)
+            self.to_output(task_key, image=img_resize, output=output_filename, quality=quality, dpi=dpi)
         return img_resize
 
     def crop(self, input_obj=None,  silent: bool = False, **kwargs):
@@ -720,7 +727,7 @@ class ImageFileElf(DataFileElf):
             if silent:
                 pass
             else:
-                self.to_output(task_key, img=img_result, filename=output_filename)
+                self.to_output(task_key, image=img_result, output=output_filename)
             return img_result
         else:
             logger.warning([3004, (left, top, right, bottom)])
@@ -754,11 +761,11 @@ class ImageFileElf(DataFileElf):
                         img_result[y: y+unit, x: x+unit] = most_used_color(img_ori, x, y, unit, unit)
             else:
                 r, g, b = hex_to_rgb(self._config[task_key]['type'])
-                img_result[top: bottom, left: right] = [b, g, r]
+                img_result[top: bottom, left: right] = [r, b, g]
             if silent:
                 pass
             else:
-                self.to_output(task_key, img=img_result, filename=output_filename)
+                self.to_output(task_key, image=img_result, output=output_filename)
             return img_result
         else:
             logger.warning([3005, (left, top, right, bottom)])

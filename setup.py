@@ -37,7 +37,7 @@ setup(
         'ni-config>=0.0.15',
         'pandas>=2.2.2',
         'Pillow>=10.3.0',
-        'qrcode>=7.2',
+        'qrcode>=7.4.2',
         'opencv-python>=4.10.0.84',
         'scikit-image>=0.23.2',
         'PyMuPDF>=1.24.6'

@@ -15,76 +15,93 @@
 
 ## 安装
 
-> pip install --upgrade dfelf
-
-在macOS下，如果要pdf2image运行正常，需要安装Poppler
-
 > conda install -c conda-forge poppler
+> 
+> pip install --upgrade dfelf
 
 ## PDFFileElf
 
 PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 
-* **reorganize**：抽取PDF文件中相关页重新排列组合成一个新的PDF文件；对应的配置设定为*reorganize*。
-> PDFFileElf.reorganize(input_obj=None, silent: bool = False, **kwargs)
+* **create**：抽取一个或多个PDF文件中相关页重新排列组合成一个新的PDF文件；对应的配置设定为*create*。
+> PDFFileElf.create(input_obj=None, silent: bool = False, **kwargs)
 * **image2pdf**：将图片文件拼接成一个PDF文件，每个图片为一页；对应的配置设定为*image2pdf*。
 > PDFFileElf.image2pdf(input_obj: list = None, silent: bool = False, **kwargs)
 * **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*2image*。
 > PDFFileElf.to_image(input_obj=None, silent: bool = False, **kwargs)
-* **merge**：将PDF文件按顺序合并为一个PDF文件；对应的配置设定为*merge*。
-> PDFFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
 * **remove**：将PDF文件中指定的页面删除后输出PDF文件；对应的配置设定为*remove*。
 > PDFFileElf.remove(input_obj=None, silent: bool = False, **kwargs)
 * **extract_images**：将PDF文件中指定的页面或整个PDF文件（当*pages*配置为空*list*时，表示整个PDF文件）的图片进行提取；对应的配置设定为*extract_images*。
 > PDFFileElf.extract_images(input_obj=None, silent: bool = False, **kwargs)
-* **remove_watermark**：将PDF文件中指定的水印文本关键词所在的区域文本清除。
-> PDFFileElf.remove_watermark(input_obj=None, silent: bool = False, **kwargs)
 * **extract_fonts**：将PDF文件中的字体导出到指定的*output*目录中。
 > PDFFileElf.extract_fonts(input_obj=None, silent: bool = False, **kwargs)
 > 
+
+以下方法从0.2.0版本开始废弃，改用**create**统一实现
+
+> * **reorganize**：抽取PDF文件中相关页重新排列组合成一个新的PDF文件；对应的配置设定为*reorganize*。
+> PDFFileElf.reorganize(input_obj=None, silent: bool = False, **kwargs)
+> * **merge**：将PDF文件按顺序合并为一个PDF文件；对应的配置设定为*merge*。
+> PDFFileElf.merge(input_obj: list = None, silent: bool = False, **kwargs)
+
+另外，remove_watermark未完善，0.2.0版本开始暂时不提供服务
+
+> * **remove_watermark**：将PDF文件中指定的水印文本关键词所在的区域文本清除。
+> PDFFileElf.remove_watermark(input_obj=None, silent: bool = False, **kwargs)
+
 
 配置文件设定如下：
 
 ```json
 {
-    'reorganize': {
-        'input': 'input_filename',
-        'output': 'output_filename',
-        'pages': [1]
+    "create": {
+        "input": [
+            {
+                "file": "input_filename_01",
+                "pages": []
+            },
+            {
+                "file": "input_filename_02",
+                "pages": []
+            }
+        ],
+        "output": "output_filename"
     },
-    'image2pdf': {
-        'images': [],
-        'output': 'output_filename'
+    "image2pdf": {
+        "images": [],
+        "output": "output_filename"
     },
-    '2image': {
-        'input': 'input_filename',
-        'output': 'output_filename_prefix',
-        'format': 'png',
-        'dpi': 200,
-        'pages': [1]
+    "to_image": {
+        "input": "input_filename",
+        "output": "output_filename_prefix",
+        "format": "png",
+        "dpi": 200,
+        "pages": [
+            1
+        ]
     },
-    'merge': {
-        'input': [],
-        'output': 'output_filename'
+    "remove": {
+        "input": "input_filename",
+        "output": "output_filename",
+        "pages": [
+            1
+        ]
     },
-    'remove': {
-        'input': 'input_filename',
-        'output': 'output_filename',
-        'pages': [1]
+    "extract_images": {
+        "input": "input_filename",
+        "output": "output_filename_prefix",
+        "pages": [
+            1
+        ]
     },
-    'extract_images': {
-        'input': 'input_filename',
-        'output': 'output_filename_prefix',
-        'pages': [1]
+    "remove_watermark": {
+        "input": "input_filename",
+        "output": "output_filename",
+        "keywords": []
     },
-    'remove_watermark': {
-        'input': 'input_filename',
-        'output': 'output_filename',
-        'keywords': []
-    },
-    'extract_fonts': {
-        'input': 'input_filename',
-        'output': 'output_directory'
+    "extract_fonts": {
+        "input": "input_filename",
+        "output": "output_directory"
     }
 }
 ```

@@ -7,6 +7,8 @@ from skimage.metrics import structural_similarity as ssim
 from PIL import Image
 import os
 import re
+from random import randint
+from moment import moment
 
 try:
     import importlib.resources as pkg_resources
@@ -124,3 +126,7 @@ chinese_checker = re.compile(u'[\u4e00-\u9fa5]')
 
 def contain_chinese(input_string: str):
     return chinese_checker.search(input_string)
+
+
+def random_name():
+    return str(moment().unix()) + str(randint(0, 9))

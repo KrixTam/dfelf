@@ -1,6 +1,5 @@
 import os
 import cv2
-from moment import moment
 from skimage.io import imsave
 import base64
 import qrcode
@@ -21,7 +20,7 @@ from collections import Counter
 #     import importlib_resources as pkg_resources  # pragma: no cover
 # from dfelf.res import Noto_Sans_SC
 # DEFAULT_FONT = os.path.join(pkg_resources.files(Noto_Sans_SC), 'NotoSansSC-Regular.otf')
-from dfelf.commons import DEFAULT_FONT
+from dfelf.commons import DEFAULT_FONT, random_name
 
 
 def most_used_color(img, left: int, upper: int, width: int, height: int):
@@ -314,17 +313,14 @@ class ImageFileElf(DataFileElf):
                 else:
                     raise ValueError(logger.error([3009, input_obj]))
             else:
-                if isinstance(input_obj, np.ndarray):
+                if str(type(input_obj)) == str(np.ndarray):
                     return input_obj.copy()
                 else:
-                    if str(type(input_obj)) == str(np.ndarray):
-                        return input_obj.copy()
-                    else:
-                        if isinstance(input_obj, Image.Image):
-                            temp_file = self.get_log_path('trans_' + str(moment().unix()) + '.png')
-                            input_obj.save(temp_file)
-                            input_img = cv2.imread(temp_file)
-                            return input_img
+                    if isinstance(input_obj, Image.Image):
+                        temp_file = self.get_log_path('trans_' + random_name() + '.png')
+                        input_obj.save(temp_file)
+                        input_img = cv2.imread(temp_file)
+                        return input_img
                 raise TypeError(logger.error([3007, type(input_obj)]))
         else:
             if task_key == 'fill':
@@ -722,7 +718,8 @@ class ImageFileElf(DataFileElf):
         if 1 == mode:
             right = left + right
             bottom = top + bottom
-        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1]):
+        if ((left >= 0) and (top >= 0) and (right > left) and (bottom > top)
+                and (right <= img_ori.size[0]) and (bottom <= img_ori.size[1])):
             img_result = img_ori.crop((left, top, right, bottom))
             if silent:
                 pass
@@ -753,7 +750,8 @@ class ImageFileElf(DataFileElf):
         if 1 == mode:
             right = left + right
             bottom = top + bottom
-        if (left >= 0) and (top >= 0) and (right > left) and (bottom > top) and (right <= img_ori.shape[1]) and (bottom <= img_ori.shape[0]):
+        if ((left >= 0) and (top >= 0) and (right > left) and (bottom > top)
+                and (right <= img_ori.shape[1]) and (bottom <= img_ori.shape[0])):
             img_result = img_ori.copy()
             if len(self._config[task_key]['type']) == 1:
                 for x in range(left, right, unit):

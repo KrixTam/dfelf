@@ -433,7 +433,8 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(result_encoded, encoded)
         df_elf_01 = ImageFileElf(output_flag=False)
         df_elf_01.from_base64(**config_02)
-        self.assertEqual(df_elf_01.checksum(df_elf_01.get_log_path(output_filename)), df_elf_01.checksum(input_filename))
+        self.assertEqual(df_elf_01.checksum(df_elf_01.get_log_path(output_filename)),
+                         df_elf_01.checksum(input_filename))
 
     def test_base64_02(self):
         df_elf = ImageFileElf()
@@ -456,7 +457,8 @@ class TestImageFileElf(unittest.TestCase):
         self.assertEqual(result_encoded, encoded)
         df_elf_01 = ImageFileElf(output_flag=False)
         df_elf_01.from_base64(image_data, **config_02)
-        self.assertEqual(df_elf_01.checksum(df_elf_01.get_log_path(output_filename)), df_elf_01.checksum(input_filename))
+        self.assertEqual(df_elf_01.checksum(df_elf_01.get_log_path(output_filename)),
+                         df_elf_01.checksum(input_filename))
 
     def test_base64_03(self):
         output_filename = 'test_base64_03.png'

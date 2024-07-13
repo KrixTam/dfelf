@@ -1,10 +1,9 @@
 import os
 import pymupdf
-from moment import moment
 from PIL import Image
 from ni.config import Config
 from dfelf import DataFileElf
-from dfelf.commons import logger, is_same_image
+from dfelf.commons import logger, is_same_image, random_name
 from io import BytesIO
 
 HEX_REG = '{0:0{1}x}'
@@ -97,7 +96,7 @@ class PDFFileElf(DataFileElf):
                     'images': [],
                     'output': 'output_filename'
                 },
-                '2image': {
+                'to_image': {
                     'input': 'input_filename',
                     'output': 'output_filename_prefix',
                     'format': 'png',
@@ -157,7 +156,7 @@ class PDFFileElf(DataFileElf):
                             'output': {'type': 'string'}
                         }
                     },
-                    '2image': {
+                    'to_image': {
                         'type': 'object',
                         'properties': {
                             'input': {'type': 'string'},
@@ -233,7 +232,7 @@ class PDFFileElf(DataFileElf):
                 pdf_file = pymupdf.open(self._config[task_key]['input'])
                 return pdf_file
         if isinstance(input_obj, pymupdf.Document):
-            temp_file = self.get_log_path('trans_' + str(moment().unix()) + '.pdf')
+            temp_file = self.get_log_path('trans_' + random_name() + '.pdf')
             input_obj.save(temp_file)
             pdf_file = pymupdf.open(temp_file)
             return pdf_file
@@ -251,7 +250,7 @@ class PDFFileElf(DataFileElf):
             output_filename = get_path(self._config[task_key]['output'])
             kwargs['document'].save(output_filename)
         else:
-            if task_key in ['2image', 'extract_images']:
+            if task_key in ['to_image', 'extract_images']:
                 output_filename = get_path(kwargs['output'])
                 kwargs['pixmap'].save(output_filename)
             else:
@@ -269,7 +268,7 @@ class PDFFileElf(DataFileElf):
             else:
                 inputs = self._config[task_key]['input']
                 for input_info in inputs:
-                    pdf_file = pymupdf.open(input_info['file'])
+                    pdf_file = self.trans_object(input_info['file'], task_key)
                     selected_pages = check_pages(pdf_file, input_info['pages'])
                     if len(selected_pages) > 0:
                         pdf_file.select(selected_pages)
@@ -277,7 +276,7 @@ class PDFFileElf(DataFileElf):
         else:
             input_obj_selected = input_obj
             for input_info in input_obj_selected:
-                pdf_file = input_info['file']
+                pdf_file = self.trans_object(input_info['file'], task_key)
                 selected_pages = check_pages(pdf_file, input_info['pages'])
                 if len(selected_pages) > 0:
                     pdf_file.select(selected_pages)
@@ -332,7 +331,7 @@ class PDFFileElf(DataFileElf):
         return pdf_file
 
     def to_image(self, input_obj: pymupdf.Document = None, silent: bool = False, **kwargs):
-        task_key = '2image'
+        task_key = 'to_image'
         self.set_config_by_task_key(task_key, **kwargs)
         pdf_file = self.trans_object(input_obj, task_key)
         if pdf_file is None:
@@ -371,8 +370,6 @@ class PDFFileElf(DataFileElf):
         selected_pages = check_pages(pdf_file, self._config[task_key]['pages'])
         if len(selected_pages) > 0:
             pdf_file.delete_pages(selected_pages)
-        else:
-            return None
         if silent:
             pass
         else:

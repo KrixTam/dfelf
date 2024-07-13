@@ -990,7 +990,7 @@ class TestCSVFileElf(unittest.TestCase):
     def test_set_output(self):
         output_dir = os.path.join('output', 'test' + str(random()))
         self.assertFalse(os.path.exists(output_dir))
-        df_elf = CSVFileElf(output_dir=output_dir)
+        CSVFileElf(output_dir=output_dir)
         self.assertTrue(os.path.exists(output_dir))
 
     def test_merge_01(self):
@@ -1007,7 +1007,7 @@ class TestCSVFileElf(unittest.TestCase):
             'on': ['生效日期', '基金代码'],
             'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
         }
-        result = df_elf.merge(**config)
+        df_elf.merge(**config)
         result_filename = os.path.join(cwd, 'result', 'merge.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
@@ -1045,7 +1045,7 @@ class TestCSVFileElf(unittest.TestCase):
             'on': ['生效日期', '基金代码'],
             'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
         }
-        result = df_elf.merge([input_filename_01, input_filename_02], **config)
+        df_elf.merge([input_filename_01, input_filename_02], **config)
         result_filename = os.path.join(cwd, 'result', 'merge.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))
@@ -1064,7 +1064,7 @@ class TestCSVFileElf(unittest.TestCase):
             'on': ['生效日期', '基金代码'],
             'mappings': {'权益登记日': '生效日期', '拆分折算日': '生效日期'}
         }
-        result = df_elf.merge([input_df_01, input_filename_02], **config)
+        df_elf.merge([input_df_01, input_filename_02], **config)
         result_filename = os.path.join(cwd, 'result', 'merge.csv')
         dist_filename = df_elf.get_output_path(config['output']['name'])
         self.assertEqual(df_elf.checksum(result_filename), df_elf.checksum(dist_filename))

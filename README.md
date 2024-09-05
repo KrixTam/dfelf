@@ -28,14 +28,15 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 * **image2pdf**：将图片文件拼接成一个PDF文件，每个图片为一页；对应的配置设定为*image2pdf*。
 > PDFFileElf.image2pdf(input_obj: list = None, silent: bool = False, **kwargs)
 * **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*2image*。
-> PDFFileElf.to_image(input_obj=None, silent: bool = False, **kwargs)
+> PDFFileElf.to_image(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **remove**：将PDF文件中指定的页面删除后输出PDF文件；对应的配置设定为*remove*。
-> PDFFileElf.remove(input_obj=None, silent: bool = False, **kwargs)
+> PDFFileElf.remove(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **extract_images**：将PDF文件中指定的页面或整个PDF文件（当*pages*配置为空*list*时，表示整个PDF文件）的图片进行提取；对应的配置设定为*extract_images*。
-> PDFFileElf.extract_images(input_obj=None, silent: bool = False, **kwargs)
+> PDFFileElf.extract_images(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **extract_fonts**：将PDF文件中的字体导出到指定的*output*目录中。
 > PDFFileElf.extract_fonts(input_obj=None, silent: bool = False, **kwargs)
-> 
+* **rotate_pages**：将PDF文件中指定的页面进行顺时针旋转处理后，把处理后的PDF输出到新的PDF文件中。
+> PDFFileElf.rotate_pages(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 
 以下方法从0.2.0版本开始废弃，改用**create**统一实现
 
@@ -48,7 +49,6 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 
 > * **remove_watermark**：将PDF文件中指定的水印文本关键词所在的区域文本清除。
 > PDFFileElf.remove_watermark(input_obj=None, silent: bool = False, **kwargs)
-
 
 配置文件设定如下：
 
@@ -102,6 +102,13 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
     "extract_fonts": {
         "input": "input_filename",
         "output": "output_directory"
+    },
+    "rotate_pages": {
+        "input": "input_filename",
+        "output": "output_filename",
+        "pages": [
+            "1|90"
+        ]
     }
 }
 ```
@@ -113,6 +120,8 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > - 自v0.1.6版本开始，支持PDFFileElf.remove和PDFFileElf.extract_images
 > 
 > - 自v0.1.13版本开始，支持PDFFileElf.remove_watermark、PDFFileElf.extract_fonts
+> 
+> - 自v0.2.1版本开始，支持支持PDFFileElf.rotate_pages。
 > 
 > 对于PDFFileElf.extract_images的*pages*配置，若为空list，即"**\[ \]**"，表示对整个文件的图片进行提取。
 > 

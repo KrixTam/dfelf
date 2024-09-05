@@ -40,6 +40,7 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.image2pdf(**config))
         self.assertEqual(None, df_elf.extract_images(**config))
         self.assertEqual(None, df_elf.extract_fonts(**config))
+        self.assertEqual(None, df_elf.rotate_pages(**config))
         # self.assertEqual(None, df_elf.remove_watermark(**config))
 
     def test_check_pages_error(self):
@@ -561,6 +562,90 @@ class TestPDFFileElf(unittest.TestCase):
     def test_trans_object_error_02(self):
         df_elf = PDFFileElf()
         self.assertEqual(df_elf.trans_object(123, 'abc'), None)
+
+    def test_rotate_pages_01(self):
+        df_elf = PDFFileElf()
+        output_filename_01 = 'dive-into-python3-part_rotate_pages_01_01.pdf'
+        output_filename_02 = 'dive-into-python3-part_rotate_pages_01_02.pdf'
+        result_filename_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part_rotate_pages_2_90.pdf')
+        result_filename_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part_rotate_pages_3_270.pdf')
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config_01 = {
+            'input': input_filename,
+            'output': output_filename_01,
+            'pages': ['2|90']
+        }
+        df_elf.rotate_pages(**config_01)
+        config_02 = {
+            'output': output_filename_02,
+            'pages': ['4,20', '3|270']
+        }
+        pdf_file = open_pdf(input_filename)
+        df_elf.rotate_pages(pdf_file, **config_02)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_01), result_filename_01))
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_02), result_filename_02))
+        pdf_file.close()
+
+    def test_rotate_pages_02(self):
+        df_elf = PDFFileElf()
+        output_filename = 'dive-into-python3-part_rotate_pages_02.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config = {
+            'input': input_filename,
+            'output': output_filename,
+            'pages': ['2|-20']
+        }
+        df_elf.rotate_pages(**config)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), input_filename))
+
+    def test_rotate_pages_03(self):
+        df_elf = PDFFileElf()
+        output_filename = 'dive-into-python3-part_rotate_pages_03.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config = {
+            'input': input_filename,
+            'output': output_filename,
+            'pages': ['9|20']
+        }
+        df_elf.rotate_pages(**config)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), input_filename))
+
+    def test_rotate_pages_04(self):
+        df_elf = PDFFileElf()
+        output_filename = 'dive-into-python3-part_rotate_pages_04.pdf'
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config = {
+            'input': input_filename,
+            'output': output_filename,
+            'pages': ['0|20']
+        }
+        df_elf.rotate_pages(**config)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), input_filename))
+
+    def test_rotate_pages_05(self):
+        df_elf = PDFFileElf()
+        output_filename_01 = 'dive-into-python3-part_rotate_pages_05_01.pdf'
+        output_filename_02 = 'dive-into-python3-part_rotate_pages_05_02.pdf'
+        result_filename_01 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part_rotate_pages_2_90.pdf')
+        result_filename_02 = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part_rotate_pages_3_270.pdf')
+        input_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.merge.pdf')
+        config_01 = {
+            'input': input_filename,
+            'output': output_filename_01,
+            'pages': ['2|90']
+        }
+        df_elf.rotate_pages(**config_01)
+        config_02 = {
+            'output': output_filename_02,
+            'pages': ['4,20', '3|270']
+        }
+        pdf_file_01 = open_pdf(input_filename)
+        pdf_file_02 = df_elf.rotate_pages(pdf_file_01, True, **config_02)
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename_01), result_filename_01))
+        self.assertFalse(os.path.exists(df_elf.get_log_path(output_filename_02)))
+        self.assertTrue(is_same_pdf(pdf_file_02, result_filename_02))
+        pdf_file_01.close()
+        pdf_file_02.close()
 
 
 if __name__ == '__main__':

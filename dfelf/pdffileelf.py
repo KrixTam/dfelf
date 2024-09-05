@@ -121,6 +121,11 @@ class PDFFileElf(DataFileElf):
                 'extract_fonts': {
                     'input': 'input_filename',
                     'output': 'output_directory'
+                },
+                'rotate_pages': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'pages': ['1|90']
                 }
             },
             'schema': {
@@ -212,6 +217,17 @@ class PDFFileElf(DataFileElf):
                             'input': {'type': 'string'},
                             'output': {'type': 'string'}
                         }
+                    },
+                    'rotate_pages': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'string'}
+                            }
+                        }
                     }
                 }
             }
@@ -246,7 +262,7 @@ class PDFFileElf(DataFileElf):
             get_path = self.get_output_path
         else:
             get_path = self.get_log_path
-        if task_key in ['create', 'remove']:
+        if task_key in ['create', 'remove', 'rotate_pages']:
             output_filename = get_path(self._config[task_key]['output'])
             kwargs['document'].save(output_filename)
         else:
@@ -445,6 +461,30 @@ class PDFFileElf(DataFileElf):
                 output.close()
                 ret.append((font_name, font_filename))
         return ret
+
+    def rotate_pages(self, input_obj: pymupdf.Document = None, silent: bool = False, **kwargs):
+        task_key = 'rotate_pages'
+        self.set_config_by_task_key(task_key, **kwargs)
+        pdf_file = self.trans_object(input_obj, task_key)
+        if pdf_file is None:
+            return None
+        pages = self._config[task_key]['pages']
+        max_page = pdf_file.page_count
+        for page_todo in pages:
+            items = page_todo.split('|')
+            if len(items) == 2:
+                page_num = int(items[0]) - 1
+                more_rot = int(items[1])
+                if page_num >=0 and page_num < max_page and more_rot > 0:
+                    page = pdf_file[page_num]
+                    current_rot = page.rotation
+                    page.set_rotation(current_rot + more_rot)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, document=pdf_file)
+        return pdf_file
+
     #
     # def remove_watermark(self, input_obj=None, silent: bool = False, **kwargs):  # pragma: no cover
     #     task_key = 'remove_watermark'

@@ -121,7 +121,7 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > 
 > - 自v0.1.13版本开始，支持PDFFileElf.remove_watermark、PDFFileElf.extract_fonts
 > 
-> - 自v0.2.1版本开始，支持支持PDFFileElf.rotate_pages。
+> - 自v0.2.1版本开始，支持PDFFileElf.rotate_pages。
 > 
 > 对于PDFFileElf.extract_images的*pages*配置，若为空list，即"**\[ \]**"，表示对整个文件的图片进行提取。
 > 

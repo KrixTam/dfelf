@@ -72,9 +72,22 @@ def is_same_image(file_1, file_2, rel_tol_mse=0.015, rel_tol_ssim=0.05, ssim_onl
 
 def read_image(image_file):
     if isinstance(image_file, str):
-        image = imread(image_file, plugin='pil')
+        try:
+            image = imread(image_file, plugin='pil')
+        except Exception:
+            import cv2
+            image = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
+            if image is None:
+                raise
+            if len(image.shape) == 3:
+                if image.shape[2] == 4:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+                else:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if len(image.shape) == 3 and image.shape[2] == 4:
             image = rgba2rgb(image)
+        if len(image.shape) == 2:
+            image = np.stack([image, image, image], axis=2)
         if image.dtype == np.uint8:
             pass
         else:

@@ -41,12 +41,109 @@ class TestPDFFileElf(unittest.TestCase):
         self.assertEqual(None, df_elf.extract_images(**config))
         self.assertEqual(None, df_elf.extract_fonts(**config))
         self.assertEqual(None, df_elf.rotate_pages(**config))
+        self.assertEqual(None, df_elf.extract_pages(**config))
+        self.assertEqual(None, df_elf.split(**config))
         # self.assertEqual(None, df_elf.remove_watermark(**config))
 
     def test_check_pages_error(self):
         pdf_file = open_pdf(os.path.join(cwd, 'sources', 'dive-into-python3.pdf'))
         with self.assertRaises(ValueError):
             check_pages(pdf_file, [600])
+
+    def test_extract_pages_01(self):
+        df_elf = PDFFileElf()
+        output_filename = 'dive-into-python3-part_extract_pages_01.pdf'
+        input_filename = os.path.join(cwd, 'sources', 'dive-into-python3.pdf')
+        config = {
+            'input': input_filename,
+            'output': output_filename,
+            'pages': [2, 3, 499]
+        }
+        df_elf.extract_pages(**config)
+        result_filename = os.path.join(cwd, 'result', 'pdf', 'dive-into-python3-part.pdf')
+        self.assertTrue(is_same_pdf(df_elf.get_output_path(output_filename), result_filename))
+        pdf_out = open_pdf(df_elf.get_output_path(output_filename))
+        self.assertEqual(pdf_out.page_count, 2)
+        pdf_out.close()
+
+    def test_extract_pages_02(self):
+        df_elf = PDFFileElf()
+        input_filename = os.path.join(cwd, 'sources', 'dive-into-python3.pdf')
+        pdf_in = open_pdf(input_filename)
+        output_filename = 'dive-into-python3-part_extract_pages_02.pdf'
+        config = {
+            'output': output_filename,
+            'pages': [2]
+        }
+        pdf_out = df_elf.extract_pages(pdf_in, True, **config)
+        self.assertFalse(os.path.exists(df_elf.get_output_path(output_filename)))
+        self.assertEqual(pdf_out.page_count, 1)
+        pdf_in.close()
+        pdf_out.close()
+
+    def test_split_01(self):
+        df_elf = PDFFileElf()
+        input_filename = df_elf.get_log_path('split_input_01.pdf')
+        pdf_in = pymupdf.open()
+        for i in range(3):
+            page = pdf_in.new_page()
+            page.insert_text((72, 72), f'PAGE {i + 1}')
+        pdf_in.save(input_filename)
+        pdf_in.close()
+        output_prefix = 'dive-into-python3-part_split_01'
+        config = {
+            'input': input_filename,
+            'output': output_prefix,
+            'pages': 2
+        }
+        outputs = df_elf.split(**config)
+        self.assertEqual(len(outputs), 2)
+        part_1 = open_pdf(outputs[0])
+        part_2 = open_pdf(outputs[1])
+        self.assertEqual(part_1.page_count, 2)
+        self.assertEqual(part_2.page_count, 1)
+        part_1.close()
+        part_2.close()
+        merge_output = 'dive-into-python3-part_split_01_merge.pdf'
+        merge_config = {
+            'input': [
+                {'file': outputs[0], 'pages': []},
+                {'file': outputs[1], 'pages': []}
+            ],
+            'output': merge_output
+        }
+        df_elf.create(**merge_config)
+        pdf_ori = open_pdf(input_filename)
+        pdf_merge = open_pdf(df_elf.get_output_path(merge_output))
+        self.assertEqual(pdf_ori.page_count, pdf_merge.page_count)
+        for page_index in range(pdf_ori.page_count):
+            self.assertEqual(pdf_ori[page_index].get_text(), pdf_merge[page_index].get_text())
+        pdf_ori.close()
+        pdf_merge.close()
+
+    def test_split_02(self):
+        df_elf = PDFFileElf()
+        input_filename = df_elf.get_log_path('split_input_02.pdf')
+        pdf_tmp = pymupdf.open()
+        for i in range(3):
+            page = pdf_tmp.new_page()
+            page.insert_text((72, 72), f'PAGE {i + 1}')
+        pdf_tmp.save(input_filename)
+        pdf_tmp.close()
+        pdf_in = open_pdf(input_filename)
+        output_prefix = 'dive-into-python3-part_split_02'
+        config = {
+            'output': output_prefix,
+            'pages': 2
+        }
+        parts = df_elf.split(pdf_in, True, **config)
+        self.assertFalse(os.path.exists(df_elf.get_output_path(output_prefix + '_1.pdf')))
+        self.assertEqual(len(parts), 2)
+        self.assertEqual(parts[0].page_count, 2)
+        self.assertEqual(parts[1].page_count, 1)
+        pdf_in.close()
+        parts[0].close()
+        parts[1].close()
 
     def test_2image_01(self):
         df_elf = PDFFileElf()

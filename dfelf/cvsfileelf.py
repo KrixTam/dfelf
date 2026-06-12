@@ -414,7 +414,7 @@ class CSVFileElf(DataFileElf):
             df_tag.rename(columns={key_right: key_ori}, inplace=True)
             df_ori = pd.merge(df_ori, df_tag, how="left", left_on=key_ori, right_on=key_ori)
             for x in range(len(fields)):
-                df_ori[fields[x]].fillna(defaults[x], inplace=True)
+                df_ori[fields[x]] = df_ori[fields[x]].fillna(defaults[x])
         if silent:
             pass
         else:

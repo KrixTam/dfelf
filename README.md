@@ -27,10 +27,14 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > PDFFileElf.create(input_obj=None, silent: bool = False, **kwargs)
 * **image2pdf**：将图片文件拼接成一个PDF文件，每个图片为一页；对应的配置设定为*image2pdf*。
 > PDFFileElf.image2pdf(input_obj: list = None, silent: bool = False, **kwargs)
-* **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*2image*。
+* **to_image**：将PDF文件相关页输出成图片，每一页为一个图片，以页码为文件后续；对应的配置设定为*to_image*。
 > PDFFileElf.to_image(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **remove**：将PDF文件中指定的页面删除后输出PDF文件；对应的配置设定为*remove*。
 > PDFFileElf.remove(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
+* **extract_pages**：根据指定页码抽取页面并导出为新的PDF文件；对应的配置设定为*extract_pages*。
+> PDFFileElf.extract_pages(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
+* **split**：按指定页数把PDF文件切割成数个PDF文件；对应的配置设定为*split*。
+> PDFFileElf.split(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **extract_images**：将PDF文件中指定的页面或整个PDF文件（当*pages*配置为空*list*时，表示整个PDF文件）的图片进行提取；对应的配置设定为*extract_images*。
 > PDFFileElf.extract_images(input_obj: pymupdf.Document = None, silent: bool = False, **kwargs)
 * **extract_fonts**：将PDF文件中的字体导出到指定的*output*目录中。
@@ -109,6 +113,18 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
         "pages": [
             "1|90"
         ]
+    },
+    "extract_pages": {
+        "input": "input_filename",
+        "output": "output_filename",
+        "pages": [
+            1
+        ]
+    },
+    "split": {
+        "input": "input_filename",
+        "output": "output_filename_prefix",
+        "pages": 1
     }
 }
 ```
@@ -123,7 +139,13 @@ PDF文件精灵用于日常对*pdf*文件的处理应用。相关方法如下：
 > 
 > - 自v0.2.1版本开始，支持PDFFileElf.rotate_pages。
 > 
+> - 自v0.3.0版本开始，支持PDFFileElf.extract_pages、PDFFileElf.split。
+> 
 > 对于PDFFileElf.extract_images的*pages*配置，若为空list，即"**\[ \]**"，表示对整个文件的图片进行提取。
+> 
+> 对于PDFFileElf.extract_pages的*pages*配置，必须为非空list，且页码从1开始。
+> 
+> 对于PDFFileElf.split的*pages*配置，表示每个切割文件包含的页数（最小值为1）；输出文件名为“output_1.pdf / output_2.pdf ...”。
 > 
 
 ## CSVFileElf

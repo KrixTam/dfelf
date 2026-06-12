@@ -126,6 +126,16 @@ class PDFFileElf(DataFileElf):
                     'input': 'input_filename',
                     'output': 'output_filename',
                     'pages': ['1|90']
+                },
+                'extract_pages': {
+                    'input': 'input_filename',
+                    'output': 'output_filename',
+                    'pages': [1]
+                },
+                'split': {
+                    'input': 'input_filename',
+                    'output': 'output_filename_prefix',
+                    'pages': 1
                 }
             },
             'schema': {
@@ -228,6 +238,29 @@ class PDFFileElf(DataFileElf):
                                 'items': {'type': 'string'}
                             }
                         }
+                    },
+                    'extract_pages': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'array',
+                                'items': {'type': 'integer'},
+                                'minItems': 1
+                            }
+                        }
+                    },
+                    'split': {
+                        'type': 'object',
+                        'properties': {
+                            'input': {'type': 'string'},
+                            'output': {'type': 'string'},
+                            'pages': {
+                                'type': 'integer',
+                                'minimum': 1
+                            }
+                        }
                     }
                 }
             }
@@ -248,10 +281,13 @@ class PDFFileElf(DataFileElf):
                 pdf_file = pymupdf.open(self._config[task_key]['input'])
                 return pdf_file
         if isinstance(input_obj, pymupdf.Document):
-            temp_file = self.get_log_path('trans_' + random_name() + '.pdf')
-            input_obj.save(temp_file)
-            pdf_file = pymupdf.open(temp_file)
-            return pdf_file
+            try:
+                data = input_obj.tobytes()
+                return pymupdf.open(stream=data, filetype='pdf')
+            except Exception:
+                temp_file = self.get_log_path('trans_' + random_name() + '_' + random_name() + '.pdf')
+                input_obj.save(temp_file)
+                return pymupdf.open(temp_file)
         if isinstance(input_obj, str):
             pdf_file = pymupdf.open(input_obj)
             return pdf_file
@@ -262,17 +298,27 @@ class PDFFileElf(DataFileElf):
             get_path = self.get_output_path
         else:
             get_path = self.get_log_path
-        if task_key in ['create', 'remove', 'rotate_pages']:
+        if task_key in ['create', 'remove', 'rotate_pages', 'extract_pages']:
             output_filename = get_path(self._config[task_key]['output'])
             kwargs['document'].save(output_filename)
         else:
             if task_key in ['to_image', 'extract_images']:
                 output_filename = get_path(kwargs['output'])
-                kwargs['pixmap'].save(output_filename)
+                if 'pixmap' in kwargs:
+                    kwargs['pixmap'].save(output_filename)
+                else:
+                    img = kwargs['image']
+                    if getattr(img, 'mode', None) == 'CMYK':
+                        img = img.convert('RGB')
+                    img.save(output_filename)
             else:
                 if task_key == 'image2pdf':
                     output_filename = get_path(self._config[task_key]['output'])
                     kwargs['first_image'].save(output_filename, save_all=True, append_images=kwargs['append_images'])
+                else:
+                    if task_key == 'split':
+                        output_filename = get_path(kwargs['output'])
+                        kwargs['document'].save(output_filename)
 
     def create(self, input_obj=None, silent: bool = False, **kwargs):
         task_key = 'create'
@@ -392,6 +438,49 @@ class PDFFileElf(DataFileElf):
             self.to_output(task_key, document=pdf_file)
         return pdf_file
 
+    def extract_pages(self, input_obj: pymupdf.Document = None, silent: bool = False, **kwargs):
+        task_key = 'extract_pages'
+        self.set_config_by_task_key(task_key, **kwargs)
+        pdf_file = self.trans_object(input_obj, task_key)
+        if pdf_file is None:
+            return None
+        selected_pages = check_pages(pdf_file, self._config[task_key]['pages'])
+        output = pymupdf.open()
+        for page_index in selected_pages:
+            output.insert_pdf(pdf_file, from_page=page_index, to_page=page_index)
+        if silent:
+            pass
+        else:
+            self.to_output(task_key, document=output)
+        return output
+
+    def split(self, input_obj: pymupdf.Document = None, silent: bool = False, **kwargs):
+        task_key = 'split'
+        self.set_config_by_task_key(task_key, **kwargs)
+        pdf_file = self.trans_object(input_obj, task_key)
+        if pdf_file is None:
+            return None
+        pages_per_file = self._config[task_key]['pages']
+        if pages_per_file < 1:
+            raise ValueError(logger.error([4004, pdf_file.name])) # pragma: no cover
+        output_prefix = self._config[task_key]['output']
+        total_pages = pdf_file.page_count
+        results = []
+        get_path = self.get_output_path if self._output_flag else self.get_log_path
+        part_index = 1
+        for start_page in range(0, total_pages, pages_per_file):
+            end_page = min(start_page + pages_per_file - 1, total_pages - 1)
+            part_doc = pymupdf.open()
+            part_doc.insert_pdf(pdf_file, from_page=start_page, to_page=end_page)
+            if silent:
+                results.append(part_doc)
+            else:
+                output_name = f'{output_prefix}_{part_index}.pdf'
+                self.to_output(task_key, document=part_doc, output=output_name)
+                results.append(get_path(output_name))
+            part_index += 1
+        return results
+
     def extract_images(self, input_obj: pymupdf.Document = None, silent: bool = False, **kwargs):
         task_key = 'extract_images'
         self.set_config_by_task_key(task_key, **kwargs)
@@ -403,32 +492,36 @@ class PDFFileElf(DataFileElf):
             pdf_file.select(selected_pages)
         output_filename_prefix = self._config[task_key]['output']
         res = []
-        if silent:
-            for page_index in range(len(pdf_file)):
-                page = pdf_file[page_index]
-                image_list = page.get_images()
-                for image_index, image in enumerate(image_list, start=1):  # enumerate the image list
-                    xref = image[0]  # get the XREF of the image
+        for page_index in range(len(pdf_file)):
+            page = pdf_file[page_index]
+            image_list = page.get_images()
+            for image_index, image in enumerate(image_list, start=1):  # enumerate the image list
+                xref = image[0]  # get the XREF of the image
+                img_page = None
+                pix = None
+                try:
+                    image_info = pdf_file.extract_image(xref)
+                    image_bytes = image_info.get('image')
+                    if image_bytes is not None:
+                        img_page = Image.open(BytesIO(image_bytes))
+                        img_page.load()
+                except Exception:
+                    img_page = None
+                if img_page is None:
                     pix = pymupdf.Pixmap(pdf_file, xref)  # create a Pixmap
                     if pix.n - pix.alpha > 3:  # CMYK: convert to RGB first
-                        pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
+                        pix = pymupdf.Pixmap(pymupdf.csRGB, pix) # pragma: no cover
                     data = pix.tobytes()
                     img_page = Image.open(BytesIO(data))
-                    res.append(img_page)
-        else:
-            for page_index in range(len(pdf_file)):
-                page = pdf_file[page_index]
-                image_list = page.get_images()
-                for image_index, image in enumerate(image_list, start=1):  # enumerate the image list
-                    xref = image[0]  # get the XREF of the image
-                    pix = pymupdf.Pixmap(pdf_file, xref)  # create a Pixmap
-                    if pix.n - pix.alpha > 3:  # CMYK: convert to RGB first
-                        pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
-                    data = pix.tobytes()
-                    img_page = Image.open(BytesIO(data))
-                    res.append(img_page)
-                    output_filename = output_filename_prefix + '_' + str(page_index) + '_' + str(image_index) + '.png'
+                    img_page.load()
+                res.append(img_page)
+                if silent:
+                    continue
+                output_filename = output_filename_prefix + '_' + str(page_index) + '_' + str(image_index) + '.png'
+                if pix is not None:
                     self.to_output(task_key, pixmap=pix, output=output_filename)
+                else:
+                    self.to_output(task_key, image=img_page, output=output_filename)
         return res
 
     def extract_fonts(self, input_obj=None, silent: bool = False, **kwargs):
